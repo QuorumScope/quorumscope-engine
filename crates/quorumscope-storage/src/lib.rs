@@ -5,6 +5,7 @@ pub mod evidence;
 pub mod freeze;
 pub mod impact;
 pub mod incident;
+pub mod indexer;
 pub mod metrics;
 pub mod pool;
 pub mod preflight;

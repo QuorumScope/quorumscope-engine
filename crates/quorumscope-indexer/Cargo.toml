@@ -20,6 +20,15 @@ quorumscope-storage = { path = "../quorumscope-storage", version = "0.1.0" }
 quorumscope-xdr = { path = "../quorumscope-xdr", version = "0.1.0" }
 tracing.workspace = true
 thiserror.workspace = true
+hex = { workspace = true }
+serde_json = { workspace = true }
+quorumscope-freeze = { path = "../quorumscope-freeze", version = "0.1.0" }
 
 [lib]
 path = "src/lib.rs"
+
+[dev-dependencies]
+sqlx = { workspace = true, features = ["postgres", "runtime-tokio-rustls"] }
+tokio = { workspace = true, features = ["full"] }
+uuid.workspace = true
+wiremock = "0.6.5"
