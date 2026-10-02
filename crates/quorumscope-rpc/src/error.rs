@@ -13,3 +13,12 @@ pub enum RpcError {
     #[error("Max retries exceeded")]
     MaxRetriesExceeded,
 }
+
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JsonRpcError {
+    pub code: i32,
+    pub message: String,
+    pub data: Option<serde_json::Value>,
+}

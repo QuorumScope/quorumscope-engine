@@ -44,7 +44,7 @@ pub struct GetLedgerEntriesResponse {
     pub jsonrpc: String,
     pub id: u32,
     pub result: Option<GetLedgerEntriesResult>,
-    pub error: Option<serde_json::Value>,
+    pub error: Option<crate::error::JsonRpcError>,
 }
 
 #[cfg(test)]

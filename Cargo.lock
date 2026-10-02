@@ -1683,15 +1683,19 @@ dependencies = [
  "quorumscope-domain",
  "thiserror",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
 name = "quorumscope-rpc"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "quorumscope-xdr",
  "reqwest",
  "serde",
  "serde_json",
+ "stellar-xdr",
  "thiserror",
  "tokio",
  "url",
@@ -1701,6 +1705,7 @@ dependencies = [
 name = "quorumscope-storage"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "chrono",
  "hex",
  "quorumscope-domain",
@@ -2475,6 +2480,7 @@ version = "28.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52599dcc4daa661c19d912f5ad55322772515a198c0da3c985ef3922f7f40b77"
 dependencies = [
+ "base64 0.22.1",
  "crate-git-revision 0.0.9",
  "escape-bytes",
  "ethnum",

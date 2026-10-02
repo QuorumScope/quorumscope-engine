@@ -59,5 +59,5 @@ pub struct GetTransactionsResponse {
     pub jsonrpc: String,
     pub id: u32,
     pub result: Option<GetTransactionsResult>,
-    pub error: Option<serde_json::Value>,
+    pub error: Option<crate::error::JsonRpcError>,
 }

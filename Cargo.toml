@@ -24,7 +24,7 @@ license = "Apache-2.0"
 chrono = { version = "0.4.38" }
 sqlx = { version = "0.8.2", features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "macros"] }
 url = "2.5.2"
-stellar-xdr = { version = "28.0.1", features = ["std", "alloc"] }
+stellar-xdr = { version = "28.0.1", features = ["std", "alloc", "base64"] }
 axum = "0.8.9"
 tokio = "1.53.1"
 reqwest = "0.13.5"
