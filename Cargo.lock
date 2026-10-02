@@ -1649,6 +1649,13 @@ dependencies = [
 [[package]]
 name = "quorumscope-freeze"
 version = "0.1.0"
+dependencies = [
+ "hex",
+ "quorumscope-domain",
+ "sha2 0.11.0",
+ "stellar-xdr",
+ "thiserror",
+]
 
 [[package]]
 name = "quorumscope-impact"
