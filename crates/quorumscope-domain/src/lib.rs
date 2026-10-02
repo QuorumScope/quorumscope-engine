@@ -45,3 +45,4 @@ mod tests {
     }
 }
 pub mod evidence;
+pub mod freeze;
