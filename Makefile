@@ -38,3 +38,7 @@ cli:
 
 live-verify:
 	./scripts/live-verify.sh
+
+dev: db-up
+	cargo run -p quorumscope-cli -- init
+	cargo run -p quorumscope-api
