@@ -9,6 +9,7 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+indicatif = "0.17.8"
 anyhow.workspace = true
 clap = { workspace = true, features = ["derive"] }
 tokio = { workspace = true, features = ["full"] }
