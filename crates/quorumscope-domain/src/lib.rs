@@ -46,3 +46,4 @@ mod tests {
 }
 pub mod evidence;
 pub mod freeze;
+pub mod bypass;
