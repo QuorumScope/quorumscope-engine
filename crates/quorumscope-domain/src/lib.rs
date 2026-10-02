@@ -44,3 +44,4 @@ mod tests {
         assert!(LedgerHash::from_slice(&invalid).is_err());
     }
 }
+pub mod evidence;
