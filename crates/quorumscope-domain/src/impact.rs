@@ -58,7 +58,6 @@ mod tests {
     }
 }
 use crate::incident::IncidentId;
-use crate::ledger::LedgerSequence;
 
 #[derive(Debug, Clone)]
 pub struct ImpactSnapshot {

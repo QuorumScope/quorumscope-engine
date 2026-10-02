@@ -153,8 +153,6 @@ mod tests {
 }
 use uuid::Uuid;
 use crate::incident::IncidentId;
-use uuid::Uuid;
-use crate::incident::IncidentId;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PreflightObservationResult {
