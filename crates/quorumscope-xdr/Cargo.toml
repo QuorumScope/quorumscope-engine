@@ -6,3 +6,8 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+stellar-xdr.workspace = true
+base64.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+quorumscope-domain = { path = "../quorumscope-domain", version = "0.1.0" }
