@@ -1,7 +1,7 @@
-use sqlx::PgPool;
-use quorumscope_domain::freeze::{DecodedFrozenKey, FrozenKeyKind};
-use uuid::Uuid;
 use crate::error::StorageError;
+use quorumscope_domain::freeze::{DecodedFrozenKey, FrozenKeyKind};
+use sqlx::PgPool;
+use uuid::Uuid;
 
 pub struct FreezeStateRepository {
     pool: PgPool,
@@ -12,7 +12,12 @@ impl FreezeStateRepository {
         Self { pool }
     }
 
-    pub async fn store_freeze_state(&self, incident_id: Uuid, ledger: i64, key: &DecodedFrozenKey) -> Result<(), StorageError> {
+    pub async fn store_freeze_state(
+        &self,
+        incident_id: Uuid,
+        ledger: i64,
+        key: &DecodedFrozenKey,
+    ) -> Result<(), StorageError> {
         sqlx::query(
             r#"
             INSERT INTO freeze_state (incident_id, ledger_sequence, kind, decoded_json, canonical_xdr)

@@ -1,6 +1,6 @@
-use sqlx::PgPool;
-use quorumscope_domain::impact::ImpactSnapshot;
 use crate::error::StorageError;
+use quorumscope_domain::impact::ImpactSnapshot;
+use sqlx::PgPool;
 
 pub struct ImpactRepository {
     pool: PgPool,
@@ -11,7 +11,10 @@ impl ImpactRepository {
         Self { pool }
     }
 
-    pub async fn store_impact_snapshot(&self, snapshot: &ImpactSnapshot) -> Result<(), StorageError> {
+    pub async fn store_impact_snapshot(
+        &self,
+        snapshot: &ImpactSnapshot,
+    ) -> Result<(), StorageError> {
         sqlx::query(
             r#"
             INSERT INTO impact_snapshots (incident_id, ledger_sequence, total_frozen_accounts, total_frozen_trustlines, total_bypassed_txs)
@@ -24,7 +27,7 @@ impl ImpactRepository {
             .bind(snapshot.total_bypassed_txs as i64)
             .execute(&self.pool)
             .await?;
-            
+
         Ok(())
     }
 }

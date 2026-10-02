@@ -40,9 +40,9 @@ pub struct TransactionResultItem {
     pub status: String,
     #[serde(rename = "txHash")]
     pub tx_hash: String,
-    pub envelopeXdr: String,
-    pub resultXdr: String,
-    pub resultMetaXdr: String,
+    pub envelope_xdr: String,
+    pub result_xdr: String,
+    pub result_meta_xdr: String,
     pub ledger: u32,
     #[serde(rename = "createdAt")]
     pub created_at: u64,
@@ -51,7 +51,7 @@ pub struct TransactionResultItem {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetTransactionsResult {
     pub transactions: Vec<TransactionResultItem>,
-    pub latestLedger: u32,
+    pub latest_ledger: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

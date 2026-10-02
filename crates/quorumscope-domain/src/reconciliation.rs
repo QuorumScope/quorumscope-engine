@@ -1,6 +1,6 @@
-use uuid::Uuid;
-use crate::ledger::LedgerSequence;
 use crate::incident::IncidentId;
+use crate::ledger::LedgerSequence;
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct ReconciliationGap {

@@ -1,8 +1,8 @@
-use stellar_xdr::{
-    LedgerKey, LedgerKeyConfigSetting, ConfigSettingId, ConfigSettingEntry,
-    FrozenLedgerKeys, FrozenLedgerKeysDelta, FreezeBypassTxs, FreezeBypassTxsDelta
-};
 use crate::error::XdrError;
+use stellar_xdr::{
+    ConfigSettingEntry, ConfigSettingId, FreezeBypassTxs, FreezeBypassTxsDelta, FrozenLedgerKeys,
+    FrozenLedgerKeysDelta, LedgerKey, LedgerKeyConfigSetting,
+};
 
 pub fn frozen_ledger_keys_key() -> LedgerKey {
     LedgerKey::ConfigSetting(LedgerKeyConfigSetting {
@@ -28,7 +28,9 @@ pub fn freeze_bypass_txs_delta_key() -> LedgerKey {
     })
 }
 
-pub fn decode_frozen_ledger_keys(entry: &ConfigSettingEntry) -> Result<&FrozenLedgerKeys, XdrError> {
+pub fn decode_frozen_ledger_keys(
+    entry: &ConfigSettingEntry,
+) -> Result<&FrozenLedgerKeys, XdrError> {
     if let ConfigSettingEntry::FrozenLedgerKeys(keys) = entry {
         Ok(keys)
     } else {
@@ -36,7 +38,9 @@ pub fn decode_frozen_ledger_keys(entry: &ConfigSettingEntry) -> Result<&FrozenLe
     }
 }
 
-pub fn decode_frozen_ledger_keys_delta(entry: &ConfigSettingEntry) -> Result<&FrozenLedgerKeysDelta, XdrError> {
+pub fn decode_frozen_ledger_keys_delta(
+    entry: &ConfigSettingEntry,
+) -> Result<&FrozenLedgerKeysDelta, XdrError> {
     if let ConfigSettingEntry::FrozenLedgerKeysDelta(delta) = entry {
         Ok(delta)
     } else {
@@ -52,7 +56,9 @@ pub fn decode_freeze_bypass_txs(entry: &ConfigSettingEntry) -> Result<&FreezeByp
     }
 }
 
-pub fn decode_freeze_bypass_txs_delta(entry: &ConfigSettingEntry) -> Result<&FreezeBypassTxsDelta, XdrError> {
+pub fn decode_freeze_bypass_txs_delta(
+    entry: &ConfigSettingEntry,
+) -> Result<&FreezeBypassTxsDelta, XdrError> {
     if let ConfigSettingEntry::FreezeBypassTxsDelta(delta) = entry {
         Ok(delta)
     } else {

@@ -1,6 +1,6 @@
-use stellar_xdr::{TransactionEnvelope, ReadXdr, WriteXdr};
-use crate::error::XdrError;
 use crate::codec::default_limits;
+use crate::error::XdrError;
+use stellar_xdr::{ReadXdr, TransactionEnvelope, WriteXdr};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DecodedTransactionEnvelope {
@@ -9,10 +9,11 @@ pub struct DecodedTransactionEnvelope {
 }
 
 pub fn decode_transaction_envelope(bytes: &[u8]) -> Result<DecodedTransactionEnvelope, XdrError> {
-    let envelope = TransactionEnvelope::from_xdr(bytes, default_limits())
-        .map_err(XdrError::Decode)?;
-        
-    let canonical_xdr = envelope.to_xdr(default_limits())
+    let envelope =
+        TransactionEnvelope::from_xdr(bytes, default_limits()).map_err(XdrError::Decode)?;
+
+    let canonical_xdr = envelope
+        .to_xdr(default_limits())
         .map_err(XdrError::Decode)?;
 
     Ok(DecodedTransactionEnvelope {
@@ -24,8 +25,11 @@ pub fn decode_transaction_envelope(bytes: &[u8]) -> Result<DecodedTransactionEnv
 #[cfg(test)]
 mod tests {
     use super::*;
-    use stellar_xdr::{TransactionV1Envelope, Transaction, AccountId, PublicKey, Uint256, SequenceNumber, Preconditions, Memo, TransactionExt};
     use stellar_xdr::VecM;
+    use stellar_xdr::{
+        AccountId, Memo, Preconditions, PublicKey, SequenceNumber, Transaction, TransactionExt,
+        TransactionV1Envelope, Uint256,
+    };
 
     #[test]
     fn test_decode_transaction_envelope() {

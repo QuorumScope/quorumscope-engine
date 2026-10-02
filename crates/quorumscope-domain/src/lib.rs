@@ -1,18 +1,20 @@
-pub mod network;
 pub mod ledger;
+pub mod network;
 
 #[cfg(test)]
 mod tests {
+    use super::ledger::{LedgerHash, LedgerSequence, ProtocolVersion};
     use super::network::{NetworkName, NetworkPassphrase};
-    use super::ledger::{LedgerSequence, ProtocolVersion, LedgerHash};
 
     #[test]
     fn test_network_passphrase_validation() {
         let name = NetworkName::new("mainnet").unwrap();
-        let passphrase = NetworkPassphrase::new("Public Global Stellar Network ; September 2015").unwrap();
+        let passphrase =
+            NetworkPassphrase::new("Public Global Stellar Network ; September 2015").unwrap();
         assert!(passphrase.validate_for_network(&name).is_ok());
 
-        let invalid_passphrase = NetworkPassphrase::new("Test SDF Network ; September 2015").unwrap();
+        let invalid_passphrase =
+            NetworkPassphrase::new("Test SDF Network ; September 2015").unwrap();
         assert!(invalid_passphrase.validate_for_network(&name).is_err());
     }
 
@@ -39,17 +41,17 @@ mod tests {
     fn test_ledger_hash_length() {
         let valid = [0u8; 32];
         assert!(LedgerHash::from_slice(&valid).is_ok());
-        
+
         let invalid = [0u8; 31];
         assert!(LedgerHash::from_slice(&invalid).is_err());
     }
 }
+pub mod bypass;
+pub mod config;
+pub mod error;
 pub mod evidence;
 pub mod freeze;
-pub mod bypass;
-pub mod preflight;
 pub mod impact;
 pub mod incident;
-pub mod error;
+pub mod preflight;
 pub mod reconciliation;
-pub mod config;

@@ -1,8 +1,8 @@
-use reqwest::Client;
-use serde::{de::DeserializeOwned, Serialize};
-use std::future::Future;
 use crate::config::RpcConfig;
 use crate::error::RpcError;
+use reqwest::Client;
+use serde::{Serialize, de::DeserializeOwned};
+use std::future::Future;
 
 #[derive(Debug, Clone)]
 pub struct RpcClient {
@@ -12,10 +12,8 @@ pub struct RpcClient {
 
 impl RpcClient {
     pub fn new(config: RpcConfig) -> Result<Self, RpcError> {
-        let http = Client::builder()
-            .timeout(config.timeout)
-            .build()?;
-            
+        let http = Client::builder().timeout(config.timeout).build()?;
+
         Ok(Self { config, http })
     }
 
@@ -29,12 +27,13 @@ impl RpcClient {
         let req_json = serde_json::to_string(request)?;
 
         retry_loop(&self.config, || async {
-            let res = http.post(endpoint.clone())
+            let res = http
+                .post(endpoint.clone())
                 .header("Content-Type", "application/json")
                 .body(req_json.clone())
                 .send()
                 .await?;
-            
+
             let status = res.status();
             if status.is_server_error() {
                 // Return an error to trigger a retry
@@ -42,14 +41,12 @@ impl RpcClient {
             }
 
             parse_json::<Res>(res).await
-        }).await
+        })
+        .await
     }
 }
 
-pub async fn retry_loop<T, F, Fut>(
-    config: &RpcConfig,
-    mut action: F,
-) -> Result<T, RpcError>
+pub async fn retry_loop<T, F, Fut>(config: &RpcConfig, mut action: F) -> Result<T, RpcError>
 where
     F: FnMut() -> Fut,
     Fut: Future<Output = Result<T, RpcError>>,
@@ -63,7 +60,7 @@ where
                 if attempt > config.max_retries {
                     return Err(RpcError::MaxRetriesExceeded);
                 }
-                
+
                 // Only retry on specific errors, but for simplicity we retry all in this loop
                 // except maybe JSON parse errors?
                 if let RpcError::Json(_) = e {

@@ -1,8 +1,8 @@
-use std::fmt;
-use crate::network::NetworkName;
-use crate::ledger::{LedgerSequence, LedgerCloseTime};
 use crate::evidence::DataFreshness;
 use crate::freeze::FrozenKeyId;
+use crate::ledger::{LedgerCloseTime, LedgerSequence};
+use crate::network::NetworkName;
+use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum PreflightStatus {
@@ -79,7 +79,7 @@ impl PreflightResult {
         if is_bypassed {
             return PreflightStatus::AllowedByBypass;
         }
-        
+
         if findings.is_empty() {
             return PreflightStatus::Clear;
         }
@@ -94,12 +94,12 @@ impl PreflightResult {
         }
         highest
     }
-    
+
     pub fn derive_confidence(findings: &[PreflightFinding]) -> PreflightConfidence {
         if findings.is_empty() {
             return PreflightConfidence::Deterministic;
         }
-        
+
         let mut lowest = PreflightConfidence::Deterministic;
         for finding in findings {
             match finding.confidence {
@@ -123,13 +123,22 @@ mod tests {
     #[test]
     fn test_status_display() {
         assert_eq!(PreflightStatus::Clear.to_string(), "clear");
-        assert_eq!(PreflightStatus::BlockedValidation.to_string(), "blocked_validation");
+        assert_eq!(
+            PreflightStatus::BlockedValidation.to_string(),
+            "blocked_validation"
+        );
     }
 
     #[test]
     fn test_derive_status() {
-        assert_eq!(PreflightResult::derive_status(&[], true), PreflightStatus::AllowedByBypass);
-        assert_eq!(PreflightResult::derive_status(&[], false), PreflightStatus::Clear);
+        assert_eq!(
+            PreflightResult::derive_status(&[], true),
+            PreflightStatus::AllowedByBypass
+        );
+        assert_eq!(
+            PreflightResult::derive_status(&[], false),
+            PreflightStatus::Clear
+        );
 
         let findings = vec![
             PreflightFinding {
@@ -145,13 +154,15 @@ mod tests {
                 implicated_keys: vec![],
                 protocol_path: "".to_string(),
                 explanation: "".to_string(),
-            }
+            },
         ];
-        
-        assert_eq!(PreflightResult::derive_status(&findings, false), PreflightStatus::BlockedValidation);
+
+        assert_eq!(
+            PreflightResult::derive_status(&findings, false),
+            PreflightStatus::BlockedValidation
+        );
     }
 }
-use uuid::Uuid;
 use crate::incident::IncidentId;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

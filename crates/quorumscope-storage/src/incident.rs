@@ -1,10 +1,8 @@
-use sqlx::{PgPool, FromRow};
-use quorumscope_domain::incident::{Incident, IncidentStatus, IncidentId};
 use crate::error::StorageError;
+use chrono::{DateTime, TimeZone, Utc};
+use quorumscope_domain::incident::Incident;
+use sqlx::{FromRow, PgPool};
 use uuid::Uuid;
-use chrono::{DateTime, Utc, TimeZone};
-use quorumscope_domain::ledger::LedgerSequence;
-use quorumscope_domain::network::NetworkId;
 
 #[derive(Debug, FromRow)]
 pub struct IncidentRow {
@@ -26,13 +24,17 @@ impl IncidentRepository {
     pub fn new(pool: PgPool) -> Self {
         Self { pool }
     }
-    
+
     pub async fn create_incident(&self, incident: &Incident) -> Result<(), StorageError> {
         let status = incident.status.to_string();
         let network_uuid = incident.network_id.as_uuid();
-        
-        let open_time = incident.opened_close_time.map(|t| Utc.timestamp_opt(t.as_timestamp(), 0).unwrap());
-        let close_time = incident.closed_close_time.map(|t| Utc.timestamp_opt(t.as_timestamp(), 0).unwrap());
+
+        let open_time = incident
+            .opened_close_time
+            .map(|t| Utc.timestamp_opt(t.as_timestamp(), 0).unwrap());
+        let close_time = incident
+            .closed_close_time
+            .map(|t| Utc.timestamp_opt(t.as_timestamp(), 0).unwrap());
 
         sqlx::query(
             r#"
@@ -49,7 +51,7 @@ impl IncidentRepository {
             .bind(status)
             .execute(&self.pool)
             .await?;
-        
+
         Ok(())
     }
 }

@@ -13,7 +13,9 @@ impl ShutdownManager {
 
     pub async fn listen_for_shutdown(&self) {
         let ctrl_c = async {
-            signal::ctrl_c().await.expect("failed to install Ctrl+C handler");
+            signal::ctrl_c()
+                .await
+                .expect("failed to install Ctrl+C handler");
         };
 
         #[cfg(unix)]
@@ -31,7 +33,7 @@ impl ShutdownManager {
             _ = ctrl_c => {},
             _ = terminate => {},
         }
-        
+
         tracing::info!("Shutdown signal received");
         let _ = self.shutdown_tx.send(());
     }

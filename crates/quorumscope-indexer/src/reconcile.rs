@@ -1,14 +1,24 @@
-use quorumscope_domain::reconciliation::ReconciliationGap;
 use crate::error::IndexerError;
+use quorumscope_domain::reconciliation::ReconciliationGap;
 
 pub struct ReconciliationEngine;
+
+impl Default for ReconciliationEngine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl ReconciliationEngine {
     pub fn new() -> Self {
         Self
     }
-    
-    pub fn match_state(&self, expected_xdr: &str, actual_xdr: &str) -> Result<Option<ReconciliationGap>, IndexerError> {
+
+    pub fn match_state(
+        &self,
+        expected_xdr: &str,
+        actual_xdr: &str,
+    ) -> Result<Option<ReconciliationGap>, IndexerError> {
         if expected_xdr != actual_xdr {
             Ok(Some(ReconciliationGap {
                 id: uuid::Uuid::new_v4(),

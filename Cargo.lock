@@ -1613,7 +1613,6 @@ name = "quorumscope-api"
 version = "0.1.0"
 dependencies = [
  "axum",
- "quorumscope-storage",
  "serde",
  "serde_json",
  "sqlx",

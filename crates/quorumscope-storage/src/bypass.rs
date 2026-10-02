@@ -1,7 +1,7 @@
-use sqlx::PgPool;
-use quorumscope_domain::bypass::DecodedBypassTransaction;
-use uuid::Uuid;
 use crate::error::StorageError;
+use quorumscope_domain::bypass::DecodedBypassTransaction;
+use sqlx::PgPool;
+use uuid::Uuid;
 
 pub struct BypassStateRepository {
     pool: PgPool,
@@ -12,7 +12,12 @@ impl BypassStateRepository {
         Self { pool }
     }
 
-    pub async fn store_bypass_state(&self, incident_id: Uuid, ledger: i64, tx: &DecodedBypassTransaction) -> Result<(), StorageError> {
+    pub async fn store_bypass_state(
+        &self,
+        incident_id: Uuid,
+        ledger: i64,
+        tx: &DecodedBypassTransaction,
+    ) -> Result<(), StorageError> {
         sqlx::query(
             r#"
             INSERT INTO bypass_state (incident_id, ledger_sequence, tx_hash, decoded_json, canonical_xdr)

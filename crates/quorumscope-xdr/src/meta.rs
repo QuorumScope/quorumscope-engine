@@ -1,8 +1,8 @@
-use stellar_xdr::{TransactionMeta, LedgerEntryChange};
+use stellar_xdr::{LedgerEntryChange, TransactionMeta};
 
 pub fn unzip_meta(meta: &TransactionMeta) -> Vec<&LedgerEntryChange> {
     let mut changes = Vec::new();
-    
+
     match meta {
         TransactionMeta::V0(m) => {
             for op in m.iter() {
@@ -37,14 +37,14 @@ pub fn unzip_meta(meta: &TransactionMeta) -> Vec<&LedgerEntryChange> {
             changes.extend(m.tx_changes_after.0.iter());
         }
     }
-    
+
     changes
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use stellar_xdr::{TransactionMetaV3, ExtensionPoint, VecM, LedgerEntryChanges};
+    use stellar_xdr::{ExtensionPoint, LedgerEntryChanges, TransactionMetaV3, VecM};
 
     #[test]
     fn test_unzip_meta_v3() {

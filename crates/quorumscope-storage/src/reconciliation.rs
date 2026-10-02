@@ -1,6 +1,6 @@
-use sqlx::PgPool;
-use quorumscope_domain::reconciliation::ReconciliationGap;
 use crate::error::StorageError;
+use quorumscope_domain::reconciliation::ReconciliationGap;
+use sqlx::PgPool;
 
 pub struct ReconciliationRepository {
     pool: PgPool,
@@ -24,7 +24,7 @@ impl ReconciliationRepository {
             .bind(&gap.actual_xdr)
             .execute(&self.pool)
             .await?;
-            
+
         Ok(())
     }
 }

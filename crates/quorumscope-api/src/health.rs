@@ -1,5 +1,5 @@
-use axum::{routing::get, Router, Json};
 use axum::response::IntoResponse;
+use axum::{Json, Router, routing::get};
 use serde_json::json;
 
 async fn healthz() -> impl IntoResponse {

@@ -1,7 +1,7 @@
+use crate::ledger::LedgerSequence;
+use crate::network::NetworkId;
 use std::fmt;
 use std::time::SystemTime;
-use crate::network::NetworkId;
-use crate::ledger::LedgerSequence;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct BypassHash([u8; 32]);
@@ -73,12 +73,11 @@ mod tests {
     fn test_bypass_hash_from_slice() {
         let valid = [0u8; 32];
         assert!(BypassHash::from_slice(&valid).is_ok());
-        
+
         let invalid = [0u8; 31];
         assert!(BypassHash::from_slice(&invalid).is_err());
     }
 }
-use crate::incident::IncidentId;
 use serde_json::Value as JsonValue;
 
 #[derive(Debug, Clone)]

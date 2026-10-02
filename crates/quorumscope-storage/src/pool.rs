@@ -1,6 +1,6 @@
-use sqlx::{postgres::PgPoolOptions, PgPool};
-use std::time::Duration;
 use crate::error::StorageError;
+use sqlx::{PgPool, postgres::PgPoolOptions};
+use std::time::Duration;
 
 #[derive(Debug, Clone)]
 pub struct StorageConfig {
@@ -25,7 +25,7 @@ pub async fn connect(config: &StorageConfig) -> Result<PgPool, StorageError> {
         .acquire_timeout(config.connect_timeout)
         .connect(&config.database_url)
         .await?;
-        
+
     Ok(pool)
 }
 

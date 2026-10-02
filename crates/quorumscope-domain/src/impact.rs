@@ -1,5 +1,5 @@
+use crate::ledger::{LedgerCloseTime, LedgerSequence};
 use std::fmt;
-use crate::ledger::{LedgerSequence, LedgerCloseTime};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ImpactEvidenceKind {

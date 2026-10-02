@@ -86,13 +86,13 @@ impl NetworkPassphrase {
             _ => None,
         };
 
-        if let Some(expected_passphrase) = expected {
-            if self.0 != expected_passphrase {
-                return Err(NetworkError::InvalidPassphrase {
-                    expected: expected_passphrase.to_string(),
-                    actual: self.0.clone(),
-                });
-            }
+        if let Some(expected_passphrase) = expected
+            && self.0 != expected_passphrase
+        {
+            return Err(NetworkError::InvalidPassphrase {
+                expected: expected_passphrase.to_string(),
+                actual: self.0.clone(),
+            });
         }
 
         Ok(())

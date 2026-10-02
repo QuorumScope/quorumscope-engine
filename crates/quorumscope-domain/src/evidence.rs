@@ -1,6 +1,6 @@
-use std::time::SystemTime;
+use crate::ledger::{LedgerCloseTime, LedgerHash, LedgerSequence};
 use crate::network::NetworkId;
-use crate::ledger::{LedgerSequence, LedgerHash, LedgerCloseTime};
+use std::time::SystemTime;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SourceKind {
@@ -40,11 +40,7 @@ impl DataFreshness {
     pub fn lag_ledgers(&self) -> u32 {
         let source = self.source_ledger.get();
         let latest = self.latest_network_ledger.get();
-        if latest > source {
-            latest - source
-        } else {
-            0
-        }
+        latest.saturating_sub(source)
     }
 
     pub fn is_stale(&self, threshold: u32) -> bool {
@@ -60,24 +56,26 @@ mod tests {
     fn test_data_freshness() {
         let source = LedgerSequence::new(100).unwrap();
         let latest = LedgerSequence::new(103).unwrap();
-        
+
         let freshness = DataFreshness::new(source, latest);
-        
+
         assert_eq!(freshness.lag_ledgers(), 3);
         assert!(!freshness.is_stale(3));
         assert!(freshness.is_stale(2));
     }
 }
-use uuid::Uuid;
 use crate::incident::IncidentId;
 use chrono::{DateTime, Utc};
 use serde_json::Value as JsonValue;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EvidenceId(pub Uuid);
 
 impl EvidenceId {
-    pub fn as_uuid(&self) -> Uuid { self.0 }
+    pub fn as_uuid(&self) -> Uuid {
+        self.0
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

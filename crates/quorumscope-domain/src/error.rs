@@ -1,6 +1,6 @@
-use thiserror::Error;
-use crate::network::NetworkError;
 use crate::ledger::LedgerError;
+use crate::network::NetworkError;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum DomainError {

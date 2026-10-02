@@ -1,6 +1,6 @@
-use std::time::Duration;
-use reqwest::{Client, IntoUrl};
 use crate::error::RpcError;
+use reqwest::IntoUrl;
+use std::time::Duration;
 
 #[derive(Debug, Clone)]
 pub struct RpcConfig {

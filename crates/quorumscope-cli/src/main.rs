@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
+use std::env;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
-use std::env;
 
 #[derive(Parser)]
 #[command(name = "quorumscope")]
@@ -28,8 +28,10 @@ async fn main() -> anyhow::Result<()> {
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://localhost/quorumscope".into());
-    let rpc_url = env::var("STELLAR_RPC_URL").unwrap_or_else(|_| "https://soroban-testnet.stellar.org".into());
+    let database_url =
+        env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://localhost/quorumscope".into());
+    let rpc_url = env::var("STELLAR_RPC_URL")
+        .unwrap_or_else(|_| "https://soroban-testnet.stellar.org".into());
 
     let cli = Cli::parse();
 

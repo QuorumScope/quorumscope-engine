@@ -1,5 +1,5 @@
-use axum::{routing::get, Router};
 use axum::response::IntoResponse;
+use axum::{Router, routing::get};
 
 async fn metrics_handler() -> impl IntoResponse {
     // Simple prometheus-style text output
@@ -7,7 +7,7 @@ async fn metrics_handler() -> impl IntoResponse {
     output.push_str("# HELP quorumscope_up Whether the service is up\n");
     output.push_str("# TYPE quorumscope_up gauge\n");
     output.push_str("quorumscope_up 1\n");
-    
+
     output
 }
 

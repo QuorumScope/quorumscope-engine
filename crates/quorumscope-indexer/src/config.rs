@@ -1,5 +1,5 @@
-use std::time::Duration;
 use std::thread;
+use std::time::Duration;
 
 #[derive(Debug, Clone)]
 pub struct IndexerConfig {
@@ -13,7 +13,7 @@ impl Default for IndexerConfig {
         let threads = thread::available_parallelism()
             .map(|n| n.get())
             .unwrap_or(4);
-            
+
         Self {
             worker_threads: threads,
             batch_size: 100,

@@ -1,6 +1,6 @@
-use sqlx::PgPool;
-use quorumscope_domain::preflight::{PreflightObservation, PreflightObservationResult};
 use crate::error::StorageError;
+use quorumscope_domain::preflight::{PreflightObservation, PreflightObservationResult};
+use sqlx::PgPool;
 
 pub struct PreflightRepository {
     pool: PgPool,
@@ -29,7 +29,7 @@ impl PreflightRepository {
             .bind(result)
             .execute(&self.pool)
             .await?;
-            
+
         Ok(())
     }
 }

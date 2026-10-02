@@ -6,7 +6,7 @@ use uuid::Uuid;
 #[tokio::test]
 async fn test_full_pipeline_mock() {
     // Mocked test
-    assert!(true, "integration test scaffold");
+    println!("integration test scaffold");
 }
 
 #[tokio::test]

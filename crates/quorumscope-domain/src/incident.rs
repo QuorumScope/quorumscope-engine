@@ -1,7 +1,7 @@
+use crate::ledger::{LedgerCloseTime, LedgerSequence};
+use crate::network::NetworkId;
 use std::fmt;
 use uuid::Uuid;
-use crate::network::NetworkId;
-use crate::ledger::{LedgerSequence, LedgerCloseTime};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct IncidentId(pub Uuid);
