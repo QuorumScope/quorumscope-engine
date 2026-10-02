@@ -6,3 +6,12 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+base64.workspace = true
+stellar-xdr.workspace = true
+tokio.workspace = true
+quorumscope-domain = { path = "../quorumscope-domain", version = "0.1.0" }
+quorumscope-rpc = { path = "../quorumscope-rpc", version = "0.1.0" }
+quorumscope-storage = { path = "../quorumscope-storage", version = "0.1.0" }
+quorumscope-xdr = { path = "../quorumscope-xdr", version = "0.1.0" }
+tracing.workspace = true
+thiserror.workspace = true
