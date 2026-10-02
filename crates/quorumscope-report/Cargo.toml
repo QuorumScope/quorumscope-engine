@@ -6,3 +6,6 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+quorumscope-domain = { path = "../quorumscope-domain", version = "0.1.0" }
+thiserror.workspace = true
+tokio.workspace = true

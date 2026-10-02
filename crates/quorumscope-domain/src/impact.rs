@@ -57,3 +57,14 @@ mod tests {
         assert_eq!(ImpactEvidenceKind::Inferred.to_string(), "inferred");
     }
 }
+use crate::incident::IncidentId;
+use crate::ledger::LedgerSequence;
+
+#[derive(Debug, Clone)]
+pub struct ImpactSnapshot {
+    pub incident_id: IncidentId,
+    pub ledger_sequence: LedgerSequence,
+    pub total_frozen_accounts: u32,
+    pub total_frozen_trustlines: u32,
+    pub total_bypassed_txs: u32,
+}

@@ -90,6 +90,10 @@ impl fmt::Display for LedgerHash {
 pub struct LedgerCloseTime(u64);
 
 impl LedgerCloseTime {
+    pub fn as_timestamp(&self) -> i64 { self.0 as i64 }
+}
+
+impl LedgerCloseTime {
     pub fn new(unix_timestamp: u64) -> Self {
         Self(unix_timestamp)
     }

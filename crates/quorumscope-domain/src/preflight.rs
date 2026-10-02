@@ -151,3 +151,22 @@ mod tests {
         assert_eq!(PreflightResult::derive_status(&findings, false), PreflightStatus::BlockedValidation);
     }
 }
+use uuid::Uuid;
+use crate::incident::IncidentId;
+use uuid::Uuid;
+use crate::incident::IncidentId;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PreflightObservationResult {
+    Allowed,
+    Blocked,
+    Bypassed,
+}
+
+#[derive(Debug, Clone)]
+pub struct PreflightObservation {
+    pub incident_id: IncidentId,
+    pub ledger_sequence: LedgerSequence,
+    pub transaction_hash: String,
+    pub result: PreflightObservationResult,
+}

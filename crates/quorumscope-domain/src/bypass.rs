@@ -78,3 +78,12 @@ mod tests {
         assert!(BypassHash::from_slice(&invalid).is_err());
     }
 }
+use crate::incident::IncidentId;
+use serde_json::Value as JsonValue;
+
+#[derive(Debug, Clone)]
+pub struct DecodedBypassTransaction {
+    pub hash: String,
+    pub decoded_json: JsonValue,
+    pub canonical_xdr: Vec<u8>,
+}

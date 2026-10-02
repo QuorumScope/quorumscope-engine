@@ -1,8 +1,8 @@
-CREATE TABLE reconciliation_gaps (
+CREATE TABLE evidence (
     id UUID PRIMARY KEY,
     incident_id UUID NOT NULL REFERENCES incidents(id),
-    ledger_sequence BIGINT NOT NULL,
-    expected_xdr TEXT NOT NULL,
-    actual_xdr TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    data JSONB NOT NULL,
+    canonical_xdr BYTEA,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

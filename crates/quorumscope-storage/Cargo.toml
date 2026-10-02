@@ -6,6 +6,8 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+serde_json.workspace = true
+hex = "0.4.3"
 sqlx.workspace = true
 tokio.workspace = true
 chrono.workspace = true

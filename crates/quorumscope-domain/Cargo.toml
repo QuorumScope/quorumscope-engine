@@ -6,5 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+serde_json.workspace = true
+chrono.workspace = true
 uuid = { workspace = true, features = ["v4"] }
 thiserror.workspace = true

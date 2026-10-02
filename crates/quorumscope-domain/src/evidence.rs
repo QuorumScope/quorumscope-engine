@@ -68,3 +68,38 @@ mod tests {
         assert!(freshness.is_stale(2));
     }
 }
+use uuid::Uuid;
+use crate::incident::IncidentId;
+use chrono::{DateTime, Utc};
+use serde_json::Value as JsonValue;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EvidenceId(pub Uuid);
+
+impl EvidenceId {
+    pub fn as_uuid(&self) -> Uuid { self.0 }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EvidenceKind {
+    PreflightTransaction,
+    BypassTransaction,
+    FreezeConfig,
+    LedgerEntry,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EvidenceData {
+    Xdr(Vec<u8>),
+    Json(JsonValue),
+}
+
+#[derive(Debug, Clone)]
+pub struct Evidence {
+    pub id: EvidenceId,
+    pub incident_id: IncidentId,
+    pub kind: EvidenceKind,
+    pub data: EvidenceData,
+    pub canonical_xdr: Option<Vec<u8>>,
+    pub created_at: DateTime<Utc>,
+}
