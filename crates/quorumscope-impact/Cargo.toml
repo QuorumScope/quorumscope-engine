@@ -1,4 +1,7 @@
 [package]
+description = "QuorumScope component"
+repository = "https://github.com/QuorumScope/quorumscope-engine"
+authors = ["zeepearl56"]
 name = "quorumscope-impact"
 version.workspace = true
 edition.workspace = true
