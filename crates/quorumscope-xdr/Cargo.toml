@@ -11,3 +11,5 @@ base64.workspace = true
 sha2.workspace = true
 thiserror.workspace = true
 quorumscope-domain = { path = "../quorumscope-domain", version = "0.1.0" }
+serde_json.workspace = true
+hex.workspace = true
