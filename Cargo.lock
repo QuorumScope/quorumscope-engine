@@ -1664,10 +1664,12 @@ dependencies = [
  "quorumscope-rpc",
  "quorumscope-storage",
  "quorumscope-xdr",
+ "sqlx",
  "stellar-xdr",
  "thiserror",
  "tokio",
  "tracing",
+ "uuid",
 ]
 
 [[package]]

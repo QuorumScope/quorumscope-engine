@@ -4,7 +4,7 @@ use crate::network::NetworkId;
 use crate::ledger::{LedgerSequence, LedgerCloseTime};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct IncidentId(Uuid);
+pub struct IncidentId(pub Uuid);
 
 impl IncidentId {
     pub fn new() -> Self {
