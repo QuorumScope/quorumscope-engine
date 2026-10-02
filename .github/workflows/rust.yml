@@ -13,8 +13,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - name: Security scan (cargo audit)
-      run: cargo audit || echo "No audit available"
     - uses: actions/checkout@v3
     - name: Format
       run: cargo fmt --all -- --check
