@@ -47,3 +47,4 @@ mod tests {
 pub mod evidence;
 pub mod freeze;
 pub mod bypass;
+pub mod preflight;
