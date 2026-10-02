@@ -14,9 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Install Typst
+      run: |
+        curl -sL https://github.com/typst/typst/releases/download/v0.11.0/typst-x86_64-unknown-linux-musl.tar.xz | tar -xJ
+        sudo mv typst-x86_64-unknown-linux-musl/typst /usr/local/bin/
     - name: Format
       run: cargo fmt --all -- --check
     - name: Clippy
       run: cargo clippy --workspace --all-targets --all-features -- -D warnings
     - name: Test
       run: cargo test --workspace --all-features
+    - name: Doc
+      run: cargo doc --workspace --no-deps
