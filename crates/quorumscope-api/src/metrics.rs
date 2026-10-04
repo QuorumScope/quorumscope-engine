@@ -1,7 +1,7 @@
 use axum::response::IntoResponse;
 use axum::{Router, routing::get};
 
-async fn metrics_handler() -> impl IntoResponse {
+pub async fn metrics_handler() -> impl IntoResponse {
     // Simple prometheus-style text output
     let mut output = String::new();
     output.push_str("# HELP quorumscope_up Whether the service is up\n");

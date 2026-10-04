@@ -20,3 +20,4 @@ quorumscope-indexer = { path = "../quorumscope-indexer", version = "0.1.0" }
 quorumscope-storage = { path = "../quorumscope-storage", version = "0.1.0" }
 quorumscope-domain = { version = "0.1.0", path = "../quorumscope-domain" }
 quorumscope-rpc = { version = "0.1.0", path = "../quorumscope-rpc" }
+axum.workspace = true

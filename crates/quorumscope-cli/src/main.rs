@@ -47,6 +47,10 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     Init,
+    Serve {
+        #[arg(long, env = "API_BIND", default_value = "127.0.0.1:8080")]
+        bind: std::net::SocketAddr,
+    },
     Index {
         #[command(subcommand)]
         mode: IndexMode,
@@ -83,6 +87,13 @@ async fn main() -> anyhow::Result<()> {
             tracing::info!("Initializing QuorumScope with DB: {}", cli.db_url);
             let pool = connect(&StorageConfig::new(cli.db_url)).await?;
             quorumscope_storage::pool::run_migrations(&pool).await?;
+        }
+        Commands::Serve { bind } => {
+            let pool = connect(&StorageConfig::new(cli.db_url)).await?;
+            quorumscope_storage::pool::run_migrations(&pool).await?;
+            let listener = tokio::net::TcpListener::bind(bind).await?;
+            tracing::info!(address = %bind, "Serving QuorumScope API");
+            axum::serve(listener, quorumscope_api::app(pool)).await?;
         }
         Commands::Index { mode } => {
             tracing::info!("Starting indexer for RPC: {}", cli.rpc_url);

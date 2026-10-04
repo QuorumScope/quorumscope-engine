@@ -12,6 +12,20 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: quorumscope
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: quorumscope
+        ports:
+        - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U quorumscope -d quorumscope"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
     - uses: actions/checkout@v3
     - name: Install Typst
@@ -23,6 +37,8 @@ jobs:
     - name: Clippy
       run: cargo clippy --workspace --all-targets --all-features -- -D warnings
     - name: Test
+      env:
+        API_TEST_DATABASE_URL: postgres://quorumscope:password@localhost:5432/quorumscope
       run: cargo test --workspace --all-features
     - name: Doc
       run: cargo doc --workspace --no-deps

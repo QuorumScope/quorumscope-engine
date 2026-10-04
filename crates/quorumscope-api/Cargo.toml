@@ -17,5 +17,11 @@ axum.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
+chrono.workspace = true
+hex.workspace = true
+utoipa = { workspace = true, features = ["uuid"] }
 
 [lib]
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
