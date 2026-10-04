@@ -1,5 +1,5 @@
 [package]
-description = "QuorumScope component"
+description = "QuorumScope transaction preflight analysis"
 repository = "https://github.com/QuorumScope/quorumscope-engine"
 authors = ["zeepearl56"]
 name = "quorumscope-preflight"
@@ -9,3 +9,7 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+quorumscope-domain = { path = "../quorumscope-domain", version = "0.1.0" }
+quorumscope-xdr = { path = "../quorumscope-xdr", version = "0.1.0" }
+stellar-xdr.workspace = true
+sha2.workspace = true

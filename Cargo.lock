@@ -1766,6 +1766,12 @@ dependencies = [
 [[package]]
 name = "quorumscope-preflight"
 version = "0.1.0"
+dependencies = [
+ "quorumscope-domain",
+ "quorumscope-xdr",
+ "sha2 0.11.0",
+ "stellar-xdr",
+]
 
 [[package]]
 name = "quorumscope-report"
