@@ -24,3 +24,7 @@ sqlx.workspace = true
 hex.workspace = true
 uuid.workspace = true
 quorumscope-report = { path = "../quorumscope-report", version = "0.1.0" }
+
+[[bin]]
+name = "quorumscope"
+path = "src/main.rs"

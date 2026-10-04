@@ -107,13 +107,19 @@ async fn poll_opens_and_closes_an_episode_with_evidence() {
     .unwrap();
     assert_eq!((events, snapshots), (1, 1));
 
+    let repeat_snapshot = SnapshotRecord {
+        id: Uuid::new_v4(),
+        setting_id: "FrozenLedgerKeys",
+        raw_xdr: vec![1, 2, 3],
+        parsed_json: serde_json::json!({ "keys_count": 1 }),
+    };
     let unchanged = repo
         .apply(&PollObservation {
             network_id: network,
             ledger: 100,
             latest_network_ledger: 101,
             protocol_version: Some(25),
-            snapshots: vec![],
+            snapshots: vec![repeat_snapshot],
             observed_keys: vec![key(7)],
             observed_bypasses: vec![],
             freeze_changes: vec![],
@@ -129,6 +135,13 @@ async fn poll_opens_and_closes_an_episode_with_evidence() {
             .await
             .unwrap();
     assert_eq!(changes, 1, "repeating a poll must not duplicate history");
+    let (stored_snapshots,): (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM config_snapshots WHERE network_id=$1")
+            .bind(network.as_uuid())
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    assert_eq!(stored_snapshots, 1, "an unchanged entry is stored once");
 
     let closed = repo
         .apply(&PollObservation {

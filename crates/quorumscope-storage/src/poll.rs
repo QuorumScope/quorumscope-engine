@@ -81,7 +81,24 @@ impl PollRepository {
         let network = obs.network_id.as_uuid();
         let mut tx = self.pool.begin().await?;
 
+        let has_changes = !obs.freeze_changes.is_empty() || !obs.bypass_changes.is_empty();
         for snap in &obs.snapshots {
+            // An unchanged entry is not stored again, so repeated polls do not grow history.
+            // Changes always keep their evidence snapshot.
+            if !has_changes {
+                let unchanged: Option<bool> = sqlx::query_scalar(
+                    "SELECT raw_entry_xdr = $3 FROM config_snapshots WHERE network_id=$1 AND config_setting_id=$2 \
+                     ORDER BY ledger_sequence DESC, observed_timestamp DESC LIMIT 1",
+                )
+                .bind(network)
+                .bind(snap.setting_id)
+                .bind(&snap.raw_xdr)
+                .fetch_optional(&mut *tx)
+                .await?;
+                if unchanged == Some(true) {
+                    continue;
+                }
+            }
             sqlx::query(
                 "INSERT INTO config_snapshots (id, network_id, ledger_sequence, config_setting_id, raw_entry_xdr, parsed_json, source_kind, observed_timestamp) \
                  VALUES ($1, $2, $3, $4, $5, $6, 'rpc', NOW())",
@@ -220,7 +237,7 @@ impl PollRepository {
             outcome.incident_opened = true;
         }
         if let Some(incident_id) = incident {
-            let changed = !obs.freeze_changes.is_empty() || !obs.bypass_changes.is_empty();
+            let changed = has_changes;
             for change in &obs.freeze_changes {
                 insert_event(
                     &mut tx,
