@@ -127,3 +127,98 @@ impl FreezeStateMachine {
         arr
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use quorumscope_domain::freeze::FrozenKeyKind;
+
+    fn key(byte: u8) -> DecodedFrozenKey {
+        DecodedFrozenKey {
+            kind: FrozenKeyKind::Account,
+            decoded_json: "{}".into(),
+            canonical_xdr: vec![byte; 4],
+        }
+    }
+
+    fn bypass(byte: u8) -> DecodedBypassTransaction {
+        DecodedBypassTransaction {
+            hash: hex::encode([byte; 32]),
+            decoded_json: serde_json::Value::Null,
+            canonical_xdr: vec![byte; 32],
+        }
+    }
+
+    fn ledger() -> LedgerSequence {
+        LedgerSequence::new(10).unwrap()
+    }
+
+    #[test]
+    fn new_keys_freeze_and_missing_keys_unfreeze() {
+        let network = NetworkId::new();
+        let kept = FrozenKeyId::new(FreezeStateMachine::hash_xdr(&key(1).canonical_xdr));
+        let gone = FrozenKeyId::new([9; 32]);
+        let current: HashSet<_> = [kept, gone].into_iter().collect();
+        let changes = FreezeStateMachine::compute_freeze_changes(
+            network,
+            ledger(),
+            &current,
+            &[key(1), key(2)],
+        );
+        let frozen: Vec<_> = changes
+            .iter()
+            .filter(|c| c.action == FreezeAction::Freeze)
+            .collect();
+        let unfrozen: Vec<_> = changes
+            .iter()
+            .filter(|c| c.action == FreezeAction::Unfreeze)
+            .collect();
+        assert_eq!(frozen.len(), 1);
+        assert_eq!(
+            frozen[0].key_hash,
+            FrozenKeyId::new(FreezeStateMachine::hash_xdr(&key(2).canonical_xdr))
+        );
+        assert_eq!(unfrozen.len(), 1);
+        assert_eq!(unfrozen[0].key_hash, gone);
+    }
+
+    #[test]
+    fn observing_the_same_set_produces_no_changes() {
+        let id = FrozenKeyId::new(FreezeStateMachine::hash_xdr(&key(1).canonical_xdr));
+        let current: HashSet<_> = [id].into_iter().collect();
+        let changes = FreezeStateMachine::compute_freeze_changes(
+            NetworkId::new(),
+            ledger(),
+            &current,
+            &[key(1)],
+        );
+        assert!(changes.is_empty());
+    }
+
+    #[test]
+    fn bypasses_are_added_and_removed_by_hash() {
+        let network = NetworkId::new();
+        let old = BypassHash::new([7; 32]);
+        let current: HashSet<_> = [old].into_iter().collect();
+        let changes =
+            FreezeStateMachine::compute_bypass_changes(network, ledger(), &current, &[bypass(8)]);
+        assert_eq!(changes.len(), 2);
+        assert!(
+            changes
+                .iter()
+                .any(|c| c.action == BypassAction::Add && c.bypass_hash == BypassHash::new([8; 32]))
+        );
+        assert!(
+            changes
+                .iter()
+                .any(|c| c.action == BypassAction::Remove && c.bypass_hash == old)
+        );
+        let none = FreezeStateMachine::compute_bypass_changes(
+            network,
+            ledger(),
+            &[BypassHash::new([8; 32])].into_iter().collect(),
+            &[bypass(8)],
+        );
+        assert!(none.is_empty());
+    }
+}

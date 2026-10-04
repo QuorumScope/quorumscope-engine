@@ -77,8 +77,8 @@ enum Commands {
         /// Ledgers the indexer may trail the network before it is reported as behind.
         #[arg(long, env = "MAX_LAG_LEDGERS", default_value = "10")]
         max_lag_ledgers: i64,
-        /// Comma-separated browser origins allowed to call the API, such as
-        /// https://console.example.org. No CORS headers are sent when unset.
+        /// Comma-separated browser origins allowed to call the API, for example
+        /// `https://console.example.org`. No CORS headers are sent when unset.
         #[arg(long, env = "ALLOWED_ORIGINS", value_delimiter = ',')]
         allowed_origins: Vec<String>,
     },

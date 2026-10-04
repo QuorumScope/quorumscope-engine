@@ -5,7 +5,6 @@ members = [
     "crates/quorumscope-rpc",
     "crates/quorumscope-freeze",
     "crates/quorumscope-preflight",
-    "crates/quorumscope-impact",
     "crates/quorumscope-storage",
     "crates/quorumscope-indexer",
     "crates/quorumscope-api",
