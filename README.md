@@ -1,41 +1,50 @@
 # QuorumScope Engine
 
-The CAP-77 transaction preflight and impact observation engine.
+QuorumScope reads Stellar Quorum Freeze (CAP-77) state from a Stellar RPC node, stores it in PostgreSQL, and serves it over an HTTP API. The API includes transaction preflight, which compares a transaction envelope with the active freeze set.
+
+## What is implemented
+
+- Indexer: reads `FrozenLedgerKeys` and `FreezeBypassTxs` through `getLedgerEntries`, records freeze and bypass changes with evidence, derives freeze episodes, and checks stored state against the network on every poll.
+- API: network, freeze state, frozen keys with history, bypasses, episodes and timelines, impact, status, preflight, and health endpoints. The contract is [openapi/openapi.json](openapi/openapi.json).
+- Reports: `quorumscope report` writes a PDF for one freeze episode.
+
+See [docs/api.md](docs/api.md), [docs/preflight.md](docs/preflight.md), and [docs/verification.md](docs/verification.md) for behavior and for what has been checked against a live network.
 
 ## Requirements
-- Rust 1.70+
-- Docker & Docker Compose (for DB)
 
-## Setup
-To initialize the stack locally:
+- Rust 1.98.1 (see `rust-toolchain.toml`)
+- PostgreSQL 16
+- Typst, only for `quorumscope report`
+
+## Local setup
+
 ```bash
-make setup
+export POSTGRES_PASSWORD=choose-a-password
 make db-up
-make dev
+export DATABASE_URL=postgres://quorumscope:$POSTGRES_PASSWORD@localhost:5432/quorumscope
+cargo run -p quorumscope-cli -- init
+cargo run -p quorumscope-cli -- index once
+cargo run -p quorumscope-cli -- serve
 ```
 
-## Testing
-Run the test suite:
+`.env.example` lists every variable the binary reads. Run `quorumscope --help` and `quorumscope <command> --help` for flags.
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `init` | Apply migrations |
+| `index once` | Read the network once and exit |
+| `index watch` | Poll until SIGINT or SIGTERM |
+| `serve` | Serve the HTTP API and apply migrations at start |
+| `report --incident <uuid> --output <file>` | Write an episode PDF |
+
+State is stored per network name (`NETWORK_NAME`, default `testnet`). The network passphrase is stored with it and cannot change for an existing name.
+
+## Tests
+
 ```bash
 make check
 ```
 
-## Indexer
-The engine includes a synchronization indexer to fetch current CAP-77 freeze state from a Soroban RPC node and update local PostgreSQL state.
-
-Run one-shot index:
-```bash
-cargo run -p quorumscope-cli -- index once
-```
-
-Run continuously (watch mode):
-```bash
-cargo run -p quorumscope-cli -- index watch
-```
-
-Configuration via environment variables:
-- `DATABASE_URL` (default: postgres://localhost/quorumscope)
-- `STELLAR_RPC_URL` (default: https://soroban-testnet.stellar.org)
-- `POLLING_INTERVAL_SEC` (default: 5)
-- `NETWORK_PASSPHRASE`
-- `LOG_LEVEL`
+Set `API_TEST_DATABASE_URL` to a PostgreSQL URL to run the database contract tests. They are skipped when it is unset. CI sets it.
