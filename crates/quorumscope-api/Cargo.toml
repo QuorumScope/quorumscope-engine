@@ -19,9 +19,15 @@ serde_json.workspace = true
 tracing.workspace = true
 chrono.workspace = true
 hex.workspace = true
+base64.workspace = true
+quorumscope-domain = { path = "../quorumscope-domain", version = "0.1.0" }
+quorumscope-preflight = { path = "../quorumscope-preflight", version = "0.1.0" }
+quorumscope-xdr = { path = "../quorumscope-xdr", version = "0.1.0" }
 utoipa = { workspace = true, features = ["uuid"] }
 
 [lib]
 
 [dev-dependencies]
 tower = { version = "0.5", features = ["util"] }
+stellar-xdr.workspace = true
+sha2.workspace = true

@@ -1,10 +1,20 @@
 pub mod error;
+pub mod freshness;
 pub mod health;
+pub mod impact;
 pub mod metrics;
 pub mod middleware;
+pub mod preflight;
 pub mod read;
 
-use axum::{Extension, Router, routing::get};
+use axum::{
+    Extension, Router,
+    extract::DefaultBodyLimit,
+    routing::{get, post},
+};
+use std::sync::Arc;
+
+pub use freshness::ApiConfig;
 use sqlx::PgPool;
 use utoipa::OpenApi;
 
@@ -22,7 +32,9 @@ use utoipa::OpenApi;
         read::incidents,
         read::incident,
         read::timeline,
-        read::status
+        read::status,
+        preflight::preflight,
+        impact::impact
     ),
     components(schemas(
         error::ErrorEnvelope,
@@ -38,12 +50,29 @@ use utoipa::OpenApi;
         read::IncidentsResponse,
         read::TimelineEventResponse,
         read::TimelineResponse,
-        read::StatusResponse
+        read::StatusResponse,
+        read::FrozenKeyDetailResponse,
+        read::KeyChangeResponse,
+        freshness::StateFreshness,
+        freshness::FreshnessStatus,
+        freshness::Compatibility,
+        preflight::PreflightRequest,
+        preflight::PreflightResponse,
+        preflight::FindingResponse,
+        preflight::PreflightStatusResponse,
+        preflight::PreflightConfidenceResponse,
+        impact::ImpactResponse,
+        impact::ImpactRecordResponse,
+        impact::ObservationWindowResponse
     ))
 )]
 pub struct ApiDoc;
 
 pub fn app(pool: PgPool) -> Router {
+    app_with_config(pool, ApiConfig::default())
+}
+
+pub fn app_with_config(pool: PgPool, config: ApiConfig) -> Router {
     Router::new()
         .route("/health/live", get(health::live))
         .route("/health/ready", get(health::ready))
@@ -56,10 +85,16 @@ pub fn app(pool: PgPool) -> Router {
         .route("/api/v1/incidents/{id}", get(read::incident))
         .route("/api/v1/incidents/{id}/timeline", get(read::timeline))
         .route("/api/v1/status", get(read::status))
+        .route("/api/v1/impact", get(impact::impact))
+        .route(
+            "/api/v1/preflight",
+            post(preflight::preflight).layer(DefaultBodyLimit::max(preflight::MAX_BODY_BYTES)),
+        )
         .route("/openapi.json", get(openapi_json))
         .route("/metrics", get(metrics::metrics_handler))
         .fallback(not_found)
         .with_state(pool)
+        .layer(Extension(Arc::new(config)))
         .layer(axum::middleware::from_fn(middleware::request_id))
         .layer(axum::middleware::from_fn(middleware::track_metrics))
 }

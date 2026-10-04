@@ -26,6 +26,9 @@ pub async fn request_id(mut req: Request, next: Next) -> Response {
                     ("method_not_allowed", "Method not allowed")
                 }
                 axum::http::StatusCode::NOT_FOUND => ("not_found", "Route not found"),
+                axum::http::StatusCode::PAYLOAD_TOO_LARGE => {
+                    ("payload_too_large", "Request body is too large")
+                }
                 _ if status.is_client_error() => ("invalid_input", "Invalid request"),
                 _ => ("internal_error", "Internal server error"),
             };
@@ -35,6 +38,8 @@ pub async fn request_id(mut req: Request, next: Next) -> Response {
                     error: ErrorBody {
                         code,
                         message: message.into(),
+                        details: serde_json::json!({}),
+                        request_id: id,
                     },
                     request_id: id,
                 }),

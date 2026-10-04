@@ -20,6 +20,11 @@ pub struct ErrorEnvelope {
 pub struct ErrorBody {
     pub code: &'static str,
     pub message: String,
+    /// Safe structured context. Empty when there is none.
+    #[schema(value_type = Object)]
+    pub details: serde_json::Value,
+    /// Same value as the top-level `request_id` and the `x-request-id` header.
+    pub request_id: Uuid,
 }
 
 pub struct ApiError {
@@ -77,6 +82,8 @@ impl IntoResponse for ApiError {
                 error: ErrorBody {
                     code: self.code,
                     message: self.message,
+                    details: serde_json::json!({}),
+                    request_id: self.request_id,
                 },
                 request_id: self.request_id,
             }),

@@ -1687,11 +1687,17 @@ name = "quorumscope-api"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "base64 0.23.1",
  "chrono",
  "hex",
+ "quorumscope-domain",
+ "quorumscope-preflight",
+ "quorumscope-xdr",
  "serde",
  "serde_json",
+ "sha2 0.11.0",
  "sqlx",
+ "stellar-xdr",
  "tokio",
  "tower",
  "tracing",
