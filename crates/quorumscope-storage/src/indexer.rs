@@ -14,6 +14,10 @@ impl IndexerRepository {
         Self { pool }
     }
 
+    pub fn pool(&self) -> PgPool {
+        self.pool.clone()
+    }
+
     pub async fn get_checkpoint(
         &self,
         network_id: NetworkId,

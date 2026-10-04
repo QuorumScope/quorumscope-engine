@@ -7,6 +7,8 @@ pub mod impact;
 pub mod incident;
 pub mod indexer;
 pub mod metrics;
+pub mod network;
+pub mod poll;
 pub mod pool;
 pub mod preflight;
 pub mod reconciliation;
