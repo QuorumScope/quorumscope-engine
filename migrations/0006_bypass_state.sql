@@ -1,6 +1,6 @@
 CREATE TABLE bypass_state (
     id SERIAL PRIMARY KEY,
-    incident_id UUID NOT NULL REFERENCES incidents(id),
+    incident_id UUID NOT NULL,
     ledger_sequence BIGINT NOT NULL,
     tx_hash TEXT NOT NULL,
     decoded_json JSONB NOT NULL,
