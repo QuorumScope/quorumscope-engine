@@ -2,6 +2,10 @@
 
 Each item below says how it was checked. "Live" means a real Stellar RPC node and a real PostgreSQL database. The live runs used Stellar testnet through `https://soroban-testnet.stellar.org` on 2026-10-04 (protocol version 29 at that time).
 
+## Protocol version
+
+`VERIFIED_PROTOCOL_MAX` defaults to 28. It means the engine was checked against the Protocol 28 XDR and tooling line and current live Soroban Testnet RPC responses. It does not mean every CAP-77 edge case is proven on a live network. The CAP-77 assumptions in [preflight.md](preflight.md) still need review against protocol source material. A network reporting a higher protocol, such as the 29 testnet reported on 2026-10-04, is shown as `unverified_protocol`.
+
 ## Live verified
 
 - Migrations apply to a fresh PostgreSQL 16 database and create the schema.

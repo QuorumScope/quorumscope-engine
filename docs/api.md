@@ -38,8 +38,8 @@ Every state endpoint takes an optional `network_id` UUID. Without it, the first 
 | `observed_at` | When the indexer last read the network |
 | `last_reconciled_ledger`, `last_reconciled_at` | Last poll where stored keys and bypasses matched what the network returned |
 | `current_protocol_version` | Protocol version reported by `getLatestLedger` |
-| `verified_protocol_max` | From `VERIFIED_PROTOCOL_MAX`. Null when unset |
-| `compatibility` | `verified`, `unverified_protocol` (network protocol is newer than the maximum), or `unknown` (version or maximum missing) |
+| `verified_protocol_max` | From `VERIFIED_PROTOCOL_MAX`, which the `quorumscope serve` command defaults to 28 |
+| `compatibility` | `verified`, `unverified_protocol` (network protocol is newer than the maximum), or `unknown` (version or maximum missing; the maximum is missing only when the API is embedded without setting it) |
 
 `stale` means no network observation within `STALE_AFTER_SEC`. `indexing_behind` means the indexer is observing but trails the latest ledger by more than `MAX_LAG_LEDGERS`. `unknown` means no indexed state exists. No close time is stored, so none is reported.
 

@@ -67,10 +67,9 @@ enum Commands {
     Serve {
         #[arg(long, env = "API_BIND", default_value = "127.0.0.1:8080")]
         bind: std::net::SocketAddr,
-        /// Highest protocol version this release is verified against. Compatibility
-        /// is reported as unknown when unset.
-        #[arg(long, env = "VERIFIED_PROTOCOL_MAX")]
-        verified_protocol_max: Option<i32>,
+        /// Highest protocol version this release has been checked against.
+        #[arg(long, env = "VERIFIED_PROTOCOL_MAX", default_value = "28")]
+        verified_protocol_max: i32,
         /// Seconds without a network observation before state is reported as stale.
         #[arg(long, env = "STALE_AFTER_SEC", default_value = "300")]
         stale_after_sec: i64,
@@ -205,7 +204,7 @@ async fn main() -> anyhow::Result<()> {
             let pool = connect(&StorageConfig::new(cli.db_url.clone())).await?;
             quorumscope_storage::pool::run_migrations(&pool).await?;
             let config = ApiConfig {
-                verified_protocol_max: *verified_protocol_max,
+                verified_protocol_max: Some(*verified_protocol_max),
                 stale_after_secs: *stale_after_sec,
                 max_lag_ledgers: *max_lag_ledgers,
                 allowed_origins: allowed_origins.clone(),
