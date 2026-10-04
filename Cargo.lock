@@ -1783,9 +1783,9 @@ dependencies = [
 name = "quorumscope-report"
 version = "0.1.0"
 dependencies = [
- "quorumscope-domain",
+ "serde",
+ "serde_json",
  "thiserror",
- "tokio",
  "uuid",
 ]
 
