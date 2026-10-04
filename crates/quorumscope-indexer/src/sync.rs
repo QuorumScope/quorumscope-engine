@@ -1,154 +1,175 @@
 use crate::error::IndexerError;
 use quorumscope_domain::bypass::DecodedBypassTransaction;
-use quorumscope_domain::freeze::{DecodedFrozenKey, FrozenKeyKind};
+use quorumscope_domain::bypass::{BypassChange, BypassHash};
+use quorumscope_domain::freeze::{DecodedFrozenKey, FreezeChange, FrozenKeyId};
+use quorumscope_domain::ledger::LedgerSequence;
 use quorumscope_domain::network::NetworkId;
 use quorumscope_freeze::state_machine::FreezeStateMachine;
 use quorumscope_rpc::client::RpcClient;
-use quorumscope_rpc::get_ledger_entries::GetLedgerEntriesRequest;
+use quorumscope_rpc::get_ledger_entries::{GetLedgerEntriesRequest, GetLedgerEntriesResponse};
+use quorumscope_rpc::latest_ledger::{GetLatestLedgerRequest, GetLatestLedgerResponse};
 use quorumscope_storage::indexer::IndexerRepository;
+use quorumscope_storage::poll::{PollObservation, PollRepository, SnapshotRecord};
 use quorumscope_xdr::codec::{decode_xdr_base64, encode_xdr_base64};
 use quorumscope_xdr::config::{freeze_bypass_txs_key, frozen_ledger_keys_key};
+use quorumscope_xdr::ledger_key::decode_ledger_key;
 use std::time::Duration;
-use stellar_xdr::{ConfigSettingEntry, LedgerEntryData, ReadXdr};
+use stellar_xdr::{ConfigSettingEntry, LedgerEntryData, LedgerKey, ReadXdr};
+use tokio::time::MissedTickBehavior;
+use uuid::Uuid;
+
+const STREAM: &str = "cap77_config";
 
 pub struct SyncTask {
     client: RpcClient,
     repo: IndexerRepository,
+    poll: PollRepository,
     network_id: NetworkId,
 }
 
 impl SyncTask {
     pub fn new(client: RpcClient, repo: IndexerRepository, network_id: NetworkId) -> Self {
+        let poll = PollRepository::new(repo.pool());
         Self {
             client,
             repo,
+            poll,
             network_id,
         }
     }
 
+    async fn latest_network(&self, floor: u32) -> (i64, Option<i32>) {
+        let request = GetLatestLedgerRequest::new(2);
+        match self
+            .client
+            .send_request::<_, GetLatestLedgerResponse>(&request)
+            .await
+        {
+            Ok(GetLatestLedgerResponse {
+                result: Some(r), ..
+            }) => (
+                i64::from(r.sequence.max(floor)),
+                i32::try_from(r.protocol_version).ok(),
+            ),
+            Ok(other) => {
+                tracing::warn!(error = ?other.error, "getLatestLedger returned no result");
+                (i64::from(floor), None)
+            }
+            Err(e) => {
+                tracing::warn!(error = %e, "getLatestLedger failed");
+                (i64::from(floor), None)
+            }
+        }
+    }
+
     pub async fn run_once(&self) -> Result<(), IndexerError> {
-        let frozen_key = frozen_ledger_keys_key();
-        let bypass_key = freeze_bypass_txs_key();
-
-        let frozen_key_b64 =
-            encode_xdr_base64(&frozen_key).map_err(|e| IndexerError::Pipeline(e.to_string()))?;
-        let bypass_key_b64 =
-            encode_xdr_base64(&bypass_key).map_err(|e| IndexerError::Pipeline(e.to_string()))?;
-
-        let req = GetLedgerEntriesRequest::new(1, vec![frozen_key_b64, bypass_key_b64]);
-
-        let res: quorumscope_rpc::get_ledger_entries::GetLedgerEntriesResponse = self
+        let pipeline = |e: &dyn std::fmt::Display| IndexerError::Pipeline(e.to_string());
+        let keys = [frozen_ledger_keys_key(), freeze_bypass_txs_key()]
+            .iter()
+            .map(encode_xdr_base64)
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| pipeline(&e))?;
+        let req = GetLedgerEntriesRequest::new(1, keys);
+        let res: GetLedgerEntriesResponse = self
             .client
             .send_request(&req)
             .await
-            .map_err(|e| IndexerError::Pipeline(e.to_string()))?;
-
+            .map_err(|e| pipeline(&e))?;
         if let Some(err) = res.error {
-            return Err(IndexerError::Pipeline(format!("RPC error: {:?}", err)));
+            return Err(IndexerError::Pipeline(format!("RPC error: {err:?}")));
         }
-
         let result = res
             .result
             .ok_or_else(|| IndexerError::Pipeline("No result in RPC response".into()))?;
-        let ledger = result.latest_ledger as i64;
+        let ledger = i64::from(result.latest_ledger);
+        let (latest_network_ledger, protocol_version) =
+            self.latest_network(result.latest_ledger).await;
 
-        // Check idempotency
-        if let Some(last_ledger) = self
+        if let Some(last) = self
             .repo
-            .get_checkpoint(self.network_id, "cap77_config")
+            .get_checkpoint(self.network_id, STREAM)
             .await
-            .map_err(|e| IndexerError::Pipeline(e.to_string()))?
-            && last_ledger >= ledger
+            .map_err(|e| pipeline(&e))?
+            && last > ledger
         {
-            tracing::info!("Ledger {} already processed. Skipping.", ledger);
+            tracing::info!(
+                ledger,
+                checkpoint = last,
+                "RPC ledger is behind the checkpoint. Skipping."
+            );
+            self.poll
+                .record_network_observation(
+                    self.network_id,
+                    latest_network_ledger,
+                    protocol_version,
+                )
+                .await
+                .map_err(|e| pipeline(&e))?;
             return Ok(());
         }
 
-        let mut observed_frozen_keys = Vec::new();
-        let mut observed_bypasses = Vec::new();
+        let sequence = LedgerSequence::new(u32::try_from(ledger).map_err(|e| pipeline(&e))?)
+            .map_err(|e| pipeline(&e))?;
 
-        for entry_res in result.entries {
-            let data: LedgerEntryData = decode_xdr_base64(&entry_res.xdr)
-                .map_err(|e| IndexerError::Pipeline(e.to_string()))?;
+        let mut snapshots = Vec::new();
+        let mut observed_keys: Vec<(FrozenKeyId, DecodedFrozenKey)> = Vec::new();
+        let mut observed_bypasses: Vec<BypassHash> = Vec::new();
+        let mut frozen_ref = None;
+        let mut bypass_ref = None;
 
-            if let LedgerEntryData::ConfigSetting(config_setting) = data {
-                match &config_setting {
-                    ConfigSettingEntry::FrozenLedgerKeys(keys) => {
-                        let json = serde_json::json!({ "keys_count": keys.keys.len() });
-
-                        // We must decode into DecodedFrozenKey
-                        for encoded_key in keys.keys.as_vec() {
-                            let xdr_bytes = encoded_key.0.as_slice();
-
-                            let decoded_key = match stellar_xdr::LedgerKey::from_xdr(
-                                xdr_bytes,
-                                quorumscope_xdr::codec::default_limits(),
-                            ) {
-                                Ok(k) => k,
-                                Err(_) => continue, // ignore decode errors here
-                            };
-
-                            let kind = match decoded_key {
-                                stellar_xdr::LedgerKey::Account(_) => FrozenKeyKind::Account,
-                                stellar_xdr::LedgerKey::Trustline(_) => FrozenKeyKind::Trustline,
-                                stellar_xdr::LedgerKey::ContractData(_) => {
-                                    FrozenKeyKind::ContractData
-                                }
-                                stellar_xdr::LedgerKey::ContractCode(_) => {
-                                    FrozenKeyKind::ContractCode
-                                }
-                                _ => continue, // ignore unsupported
-                            };
-
-                            let canonical_xdr = xdr_bytes.to_vec();
-                            let decoded_json =
-                                serde_json::json!({ "type": kind.to_string() }).to_string();
-
-                            observed_frozen_keys.push(DecodedFrozenKey {
-                                kind,
-                                decoded_json,
-                                canonical_xdr,
-                            });
+        for entry in result.entries {
+            let data: LedgerEntryData = decode_xdr_base64(&entry.xdr).map_err(|e| pipeline(&e))?;
+            let raw =
+                quorumscope_xdr::codec::decode_base64(&entry.xdr).map_err(|e| pipeline(&e))?;
+            let LedgerEntryData::ConfigSetting(setting) = data else {
+                continue;
+            };
+            match &setting {
+                ConfigSettingEntry::FrozenLedgerKeys(frozen) => {
+                    for encoded in frozen.keys.as_vec() {
+                        let key = match LedgerKey::from_xdr(
+                            encoded.0.as_slice(),
+                            quorumscope_xdr::codec::default_limits(),
+                        ) {
+                            Ok(k) => k,
+                            Err(e) => {
+                                tracing::warn!(error = %e, "Skipping undecodable frozen key");
+                                continue;
+                            }
+                        };
+                        match decode_ledger_key(&key) {
+                            Ok(decoded) => {
+                                let id = FrozenKeyId::new(FreezeStateMachine::hash_xdr(
+                                    &decoded.canonical_xdr,
+                                ));
+                                observed_keys.push((id, decoded));
+                            }
+                            Err(e) => tracing::warn!(error = %e, "Skipping unsupported frozen key"),
                         }
-
-                        // Store snapshot
-                        self.repo
-                            .store_config_snapshot(
-                                self.network_id,
-                                ledger,
-                                "FrozenLedgerKeys",
-                                &quorumscope_xdr::codec::decode_base64(&entry_res.xdr).unwrap(),
-                                &json,
-                            )
-                            .await
-                            .map_err(|e| IndexerError::Pipeline(e.to_string()))?;
                     }
-                    ConfigSettingEntry::FreezeBypassTxs(txs) => {
-                        let json = serde_json::json!({ "tx_hashes_count": txs.tx_hashes.len() });
-
-                        for tx in txs.tx_hashes.as_vec() {
-                            let hex_hash = hex::encode(tx.0);
-                            observed_bypasses.push(DecodedBypassTransaction {
-                                hash: hex_hash,
-                                decoded_json: serde_json::Value::Null, // Or better parsed if needed
-                                canonical_xdr: tx.0.to_vec(),
-                            });
-                        }
-
-                        // Store snapshot
-                        self.repo
-                            .store_config_snapshot(
-                                self.network_id,
-                                ledger,
-                                "FreezeBypassTxs",
-                                &quorumscope_xdr::codec::decode_base64(&entry_res.xdr).unwrap(),
-                                &json,
-                            )
-                            .await
-                            .map_err(|e| IndexerError::Pipeline(e.to_string()))?;
-                    }
-                    _ => {}
+                    let snap = SnapshotRecord {
+                        id: Uuid::new_v4(),
+                        setting_id: "FrozenLedgerKeys",
+                        raw_xdr: raw,
+                        parsed_json: serde_json::json!({ "keys_count": frozen.keys.len() }),
+                    };
+                    frozen_ref = Some(snap.evidence_ref());
+                    snapshots.push(snap);
                 }
+                ConfigSettingEntry::FreezeBypassTxs(txs) => {
+                    for hash in txs.tx_hashes.as_vec() {
+                        observed_bypasses.push(BypassHash::new(hash.0));
+                    }
+                    let snap = SnapshotRecord {
+                        id: Uuid::new_v4(),
+                        setting_id: "FreezeBypassTxs",
+                        raw_xdr: raw,
+                        parsed_json: serde_json::json!({ "tx_hashes_count": txs.tx_hashes.len() }),
+                    };
+                    bypass_ref = Some(snap.evidence_ref());
+                    snapshots.push(snap);
+                }
+                _ => {}
             }
         }
 
@@ -156,61 +177,88 @@ impl SyncTask {
             .repo
             .get_current_frozen_keys(self.network_id)
             .await
-            .map_err(|e| IndexerError::Pipeline(e.to_string()))?;
-        let current_bypasses_db = self
+            .map_err(|e| pipeline(&e))?;
+        let current_bypasses = self
             .repo
             .get_current_bypasses(self.network_id)
             .await
-            .map_err(|e| IndexerError::Pipeline(e.to_string()))?;
+            .map_err(|e| pipeline(&e))?;
 
-        let freeze_changes = FreezeStateMachine::compute_freeze_changes(
+        let decoded: Vec<DecodedFrozenKey> = observed_keys.iter().map(|(_, k)| k.clone()).collect();
+        let mut freeze_changes: Vec<FreezeChange> = FreezeStateMachine::compute_freeze_changes(
             self.network_id,
-            quorumscope_domain::ledger::LedgerSequence::new(ledger as u32).unwrap(),
+            sequence,
             &current_frozen,
-            &observed_frozen_keys,
+            &decoded,
         );
-
-        let bypass_changes = FreezeStateMachine::compute_bypass_changes(
+        for change in &mut freeze_changes {
+            change.evidence_ref = frozen_ref.clone();
+        }
+        let observed_bypass_txs: Vec<DecodedBypassTransaction> = observed_bypasses
+            .iter()
+            .map(|h| DecodedBypassTransaction {
+                hash: h.to_string(),
+                decoded_json: serde_json::Value::Null,
+                canonical_xdr: h.as_bytes().to_vec(),
+            })
+            .collect();
+        let mut bypass_changes: Vec<BypassChange> = FreezeStateMachine::compute_bypass_changes(
             self.network_id,
-            quorumscope_domain::ledger::LedgerSequence::new(ledger as u32).unwrap(),
-            &current_bypasses_db,
-            &observed_bypasses,
+            sequence,
+            &current_bypasses,
+            &observed_bypass_txs,
         );
+        for change in &mut bypass_changes {
+            change.evidence_ref = bypass_ref.clone();
+        }
 
-        self.repo
-            .apply_freeze_changes(&freeze_changes)
+        let freeze_count = freeze_changes.len();
+        let bypass_count = bypass_changes.len();
+        let outcome = self
+            .poll
+            .apply(&PollObservation {
+                network_id: self.network_id,
+                ledger,
+                latest_network_ledger,
+                protocol_version,
+                snapshots,
+                observed_keys,
+                observed_bypasses,
+                freeze_changes,
+                bypass_changes,
+            })
             .await
-            .map_err(|e| IndexerError::Pipeline(e.to_string()))?;
-        self.repo
-            .apply_bypass_changes(&bypass_changes)
-            .await
-            .map_err(|e| IndexerError::Pipeline(e.to_string()))?;
-        self.repo
-            .upsert_checkpoint(self.network_id, "cap77_config", ledger)
-            .await
-            .map_err(|e| IndexerError::Pipeline(e.to_string()))?;
+            .map_err(|e| pipeline(&e))?;
 
         tracing::info!(
-            "Processed ledger {}. Freeze changes: {}, Bypass changes: {}",
             ledger,
-            freeze_changes.len(),
-            bypass_changes.len()
+            freeze_changes = freeze_count,
+            bypass_changes = bypass_count,
+            incident_opened = outcome.incident_opened,
+            incident_closed = outcome.incident_closed,
+            reconciled = outcome.reconciled,
+            "Processed ledger"
         );
-
+        if !outcome.reconciled {
+            return Err(IndexerError::Pipeline(
+                "stored freeze state does not match the configuration read from the network".into(),
+            ));
+        }
         Ok(())
     }
 
     pub async fn run_watch(&self, interval: Duration) -> Result<(), IndexerError> {
-        let mut sigterm =
-            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()).unwrap();
-        let mut sigint =
-            tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt()).unwrap();
+        let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .map_err(|e| IndexerError::Pipeline(e.to_string()))?;
+        let mut sigint = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
+            .map_err(|e| IndexerError::Pipeline(e.to_string()))?;
+        let mut ticker = tokio::time::interval(interval);
+        ticker.set_missed_tick_behavior(MissedTickBehavior::Delay);
 
         tracing::info!("Starting watch mode. Polling interval: {:?}", interval);
-
         loop {
             tokio::select! {
-                _ = tokio::time::sleep(interval) => {
+                _ = ticker.tick() => {
                     if let Err(e) = self.run_once().await {
                         tracing::error!("Sync error: {}", e);
                     }
