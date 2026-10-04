@@ -448,3 +448,42 @@ async fn openapi_lists_every_implemented_route() {
     }
     assert!(body["paths"]["/api/v1/preflight"]["post"].is_object());
 }
+
+#[tokio::test]
+async fn cors_headers_are_sent_only_for_configured_origins() {
+    let Some(pool) = Fixture::connect().await else {
+        return;
+    };
+    let config = ApiConfig {
+        allowed_origins: vec!["https://console.example.org".into()],
+        ..ApiConfig::default()
+    };
+    let preflight_request = |origin: &str| {
+        Request::builder()
+            .method("OPTIONS")
+            .uri("/api/v1/preflight")
+            .header("origin", origin)
+            .header("access-control-request-method", "POST")
+            .header("access-control-request-headers", "content-type")
+            .body(Body::empty())
+            .unwrap()
+    };
+    let allowed = app_with_config(pool.clone(), config.clone())
+        .oneshot(preflight_request("https://console.example.org"))
+        .await
+        .unwrap();
+    assert_eq!(
+        allowed.headers()["access-control-allow-origin"],
+        "https://console.example.org"
+    );
+    let other = app_with_config(pool.clone(), config)
+        .oneshot(preflight_request("https://other.example.org"))
+        .await
+        .unwrap();
+    assert!(other.headers().get("access-control-allow-origin").is_none());
+    let none = app_with_config(pool, ApiConfig::default())
+        .oneshot(preflight_request("https://console.example.org"))
+        .await
+        .unwrap();
+    assert!(none.headers().get("access-control-allow-origin").is_none());
+}

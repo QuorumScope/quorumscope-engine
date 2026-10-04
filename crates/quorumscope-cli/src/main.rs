@@ -77,6 +77,10 @@ enum Commands {
         /// Ledgers the indexer may trail the network before it is reported as behind.
         #[arg(long, env = "MAX_LAG_LEDGERS", default_value = "10")]
         max_lag_ledgers: i64,
+        /// Comma-separated browser origins allowed to call the API, such as
+        /// https://console.example.org. No CORS headers are sent when unset.
+        #[arg(long, env = "ALLOWED_ORIGINS", value_delimiter = ',')]
+        allowed_origins: Vec<String>,
     },
     /// Read freeze state from the network into the database.
     Index {
@@ -196,6 +200,7 @@ async fn main() -> anyhow::Result<()> {
             verified_protocol_max,
             stale_after_sec,
             max_lag_ledgers,
+            allowed_origins,
         } => {
             let pool = connect(&StorageConfig::new(cli.db_url.clone())).await?;
             quorumscope_storage::pool::run_migrations(&pool).await?;
@@ -203,6 +208,7 @@ async fn main() -> anyhow::Result<()> {
                 verified_protocol_max: *verified_protocol_max,
                 stale_after_secs: *stale_after_sec,
                 max_lag_ledgers: *max_lag_ledgers,
+                allowed_origins: allowed_origins.clone(),
             };
             let listener = tokio::net::TcpListener::bind(bind).await?;
             tracing::info!(address = %bind, "Serving QuorumScope API");

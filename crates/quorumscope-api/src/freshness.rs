@@ -13,6 +13,8 @@ pub struct ApiConfig {
     pub stale_after_secs: i64,
     /// Ledgers the indexer may trail the network before it is called behind.
     pub max_lag_ledgers: i64,
+    /// Browser origins allowed to call the API. Empty means no CORS headers are sent.
+    pub allowed_origins: Vec<String>,
 }
 
 impl Default for ApiConfig {
@@ -21,6 +23,7 @@ impl Default for ApiConfig {
             verified_protocol_max: None,
             stale_after_secs: 300,
             max_lag_ledgers: 10,
+            allowed_origins: Vec::new(),
         }
     }
 }

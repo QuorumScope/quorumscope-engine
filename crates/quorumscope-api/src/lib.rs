@@ -7,12 +7,14 @@ pub mod middleware;
 pub mod preflight;
 pub mod read;
 
+use axum::http::{HeaderName, HeaderValue, Method, header};
 use axum::{
     Extension, Router,
     extract::DefaultBodyLimit,
     routing::{get, post},
 };
 use std::sync::Arc;
+use tower_http::cors::CorsLayer;
 
 pub use freshness::ApiConfig;
 use sqlx::PgPool;
@@ -72,8 +74,26 @@ pub fn app(pool: PgPool) -> Router {
     app_with_config(pool, ApiConfig::default())
 }
 
+fn cors(origins: &[String]) -> Option<CorsLayer> {
+    let allowed: Vec<HeaderValue> = origins
+        .iter()
+        .filter_map(|o| HeaderValue::from_str(o).ok())
+        .collect();
+    if allowed.is_empty() {
+        return None;
+    }
+    Some(
+        CorsLayer::new()
+            .allow_origin(allowed)
+            .allow_methods([Method::GET, Method::POST])
+            .allow_headers([header::CONTENT_TYPE])
+            .expose_headers([HeaderName::from_static("x-request-id")]),
+    )
+}
+
 pub fn app_with_config(pool: PgPool, config: ApiConfig) -> Router {
-    Router::new()
+    let cors = cors(&config.allowed_origins);
+    let router = Router::new()
         .route("/health/live", get(health::live))
         .route("/health/ready", get(health::ready))
         .route("/api/v1/network", get(read::network))
@@ -96,7 +116,11 @@ pub fn app_with_config(pool: PgPool, config: ApiConfig) -> Router {
         .with_state(pool)
         .layer(Extension(Arc::new(config)))
         .layer(axum::middleware::from_fn(middleware::request_id))
-        .layer(axum::middleware::from_fn(middleware::track_metrics))
+        .layer(axum::middleware::from_fn(middleware::track_metrics));
+    match cors {
+        Some(layer) => router.layer(layer),
+        None => router,
+    }
 }
 
 async fn openapi_json() -> axum::Json<utoipa::openapi::OpenApi> {
