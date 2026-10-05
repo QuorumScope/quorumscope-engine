@@ -92,19 +92,19 @@ pub fn analyze(
                     implicated_keys: vec![],
                     protocol_path: path.clone(),
                     explanation: format!(
-                        "The result depends on which offers and trustlines this operation matches when the transaction is applied. The active freeze set has {} key(s), so the outcome cannot be confirmed before apply.",
+                        "While matching offers, QuorumScope cannot tell whether an offer owner or trustline is frozen. The protocol removes such an offer without moving assets and keeps matching, so the transaction does not fail for that reason. A bypass does not apply at that stage. The active freeze set has {} key(s).",
                         frozen.len()
                     ),
                 });
             }
-            Concern::PathHops { path } if frozen_set_present => {
+            Concern::ApplyTime { path } if frozen_set_present => {
                 findings.push(PreflightFinding {
                     status: PreflightStatus::ApplyTimeRisk,
                     confidence: PreflightConfidence::Conditional,
                     implicated_keys: vec![],
                     protocol_path: path.clone(),
                     explanation: format!(
-                        "The ledger entries touched along the payment path are chosen during apply. The active freeze set has {} key(s), so the affected state is known only at apply time.",
+                        "This operation names balances or pools by opaque identifier, so a frozen trustline or account is detected only when the transaction is applied, where it fails. A bypass does not apply at that stage. The active freeze set has {} key(s).",
                         frozen.len()
                     ),
                 });

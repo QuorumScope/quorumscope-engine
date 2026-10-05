@@ -1,7 +1,8 @@
 use stellar_xdr::{
-    AccountId, Asset, ChangeTrustAsset, LedgerKey, LedgerKeyAccount, LedgerKeyTrustLine,
-    MuxedAccount, Operation, OperationBody, Preconditions, PublicKey, Transaction,
-    TransactionEnvelope, TransactionExt, TransactionV0, TransactionV0Ext, TrustLineAsset,
+    AccountId, AlphaNum4, AlphaNum12, Asset, AssetCode, ChangeTrustAsset, LedgerKey,
+    LedgerKeyAccount, LedgerKeyTrustLine, MuxedAccount, Operation, OperationBody, Preconditions,
+    PublicKey, RevokeSponsorshipOp, Transaction, TransactionEnvelope, TransactionExt,
+    TransactionV0, TransactionV0Ext, TrustLineAsset,
 };
 
 pub struct Touch {
@@ -11,7 +12,7 @@ pub struct Touch {
 
 pub enum Concern {
     Dex { path: String },
-    PathHops { path: String },
+    ApplyTime { path: String },
     Unsupported { path: String, reason: String },
 }
 
@@ -29,6 +30,15 @@ impl Touched {
             }),
             path,
         });
+    }
+
+    /// Destination of a payment. The native asset names the account. A credit asset names
+    /// the destination trustline only, as CAP-77 specifies.
+    fn destination(&mut self, dest: &AccountId, asset: &Asset, at: &dyn Fn(&str) -> String) {
+        match asset {
+            Asset::Native => self.account(dest, at("destination account")),
+            _ => self.trustline(dest, line(dest, asset), at("destination trustline")),
+        }
     }
 
     fn trustline(&mut self, id: &AccountId, line: Option<TrustLineAsset>, path: String) {
@@ -148,22 +158,19 @@ fn operation(out: &mut Touched, index: usize, op: &Operation, tx_source: &Accoun
         OperationBody::Payment(o) => {
             let dest = account_id(&o.destination);
             out.trustline(&source, line(&source, &o.asset), at("sender trustline"));
-            out.account(&dest, at("destination account"));
-            out.trustline(&dest, line(&dest, &o.asset), at("destination trustline"));
+            out.destination(&dest, &o.asset, &at);
         }
         OperationBody::PathPaymentStrictReceive(o) => {
             let dest = account_id(&o.destination);
             out.trustline(&source, line(&source, &o.send_asset), at("sender trustline"));
-            out.account(&dest, at("destination account"));
-            out.trustline(&dest, line(&dest, &o.dest_asset), at("destination trustline"));
-            out.concerns.push(Concern::PathHops { path: at("payment path") });
+            out.destination(&dest, &o.dest_asset, &at);
+            out.concerns.push(Concern::Dex { path: at("offer matching") });
         }
         OperationBody::PathPaymentStrictSend(o) => {
             let dest = account_id(&o.destination);
             out.trustline(&source, line(&source, &o.send_asset), at("sender trustline"));
-            out.account(&dest, at("destination account"));
-            out.trustline(&dest, line(&dest, &o.dest_asset), at("destination trustline"));
-            out.concerns.push(Concern::PathHops { path: at("payment path") });
+            out.destination(&dest, &o.dest_asset, &at);
+            out.concerns.push(Concern::Dex { path: at("offer matching") });
         }
         OperationBody::ManageSellOffer(o) => {
             out.trustline(&source, line(&source, &o.selling), at("selling trustline"));
@@ -183,15 +190,43 @@ fn operation(out: &mut Touched, index: usize, op: &Operation, tx_source: &Accoun
         OperationBody::ChangeTrust(o) => {
             out.trustline(&source, change_trust_line(&source, &o.line), at("trustline"));
         }
-        OperationBody::AllowTrust(o) => out.account(&o.trustor, at("trustor account")),
+        OperationBody::AllowTrust(o) => {
+            let asset = match &o.asset {
+                AssetCode::CreditAlphanum4(code) => Some(TrustLineAsset::CreditAlphanum4(AlphaNum4 {
+                    asset_code: code.clone(),
+                    issuer: source.clone(),
+                })),
+                AssetCode::CreditAlphanum12(code) => {
+                    Some(TrustLineAsset::CreditAlphanum12(AlphaNum12 {
+                        asset_code: code.clone(),
+                        issuer: source.clone(),
+                    }))
+                }
+            };
+            out.trustline(&o.trustor, asset, at("trustor trustline"));
+        }
         OperationBody::SetTrustLineFlags(o) => {
-            out.account(&o.trustor, at("trustor account"));
             out.trustline(&o.trustor, line(&o.trustor, &o.asset), at("trustor trustline"));
         }
         OperationBody::Clawback(o) => {
             let from = account_id(&o.from);
-            out.account(&from, at("clawback source account"));
             out.trustline(&from, line(&from, &o.asset), at("clawback trustline"));
+        }
+        OperationBody::RevokeSponsorship(RevokeSponsorshipOp::LedgerEntry(key)) => {
+            out.keys.push(Touch {
+                key: key.clone(),
+                path: at("sponsorship entry"),
+            });
+        }
+        OperationBody::RevokeSponsorship(RevokeSponsorshipOp::Signer(signer)) => {
+            out.account(&signer.account_id, at("signer account"));
+        }
+        OperationBody::ClaimClaimableBalance(_)
+        | OperationBody::LiquidityPoolDeposit(_)
+        | OperationBody::LiquidityPoolWithdraw(_) => {
+            out.concerns.push(Concern::ApplyTime {
+                path: at("opaque balance or pool identifiers"),
+            });
         }
         OperationBody::CreateClaimableBalance(o) => {
             out.trustline(&source, line(&source, &o.asset), at("source trustline"));

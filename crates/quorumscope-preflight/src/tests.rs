@@ -251,7 +251,7 @@ fn offers_are_dex_conditional_only_when_a_freeze_set_exists() {
 }
 
 #[test]
-fn path_payments_carry_apply_time_risk() {
+fn path_payments_are_dex_conditional_not_a_failure() {
     let op = OperationBody::PathPaymentStrictReceive(PathPaymentStrictReceiveOp {
         send_asset: Asset::Native,
         send_max: 10,
@@ -262,11 +262,114 @@ fn path_payments_carry_apply_time_risk() {
     });
     let env = envelope(1, vec![op], TransactionExt::V0);
     let analysis = analyze(&env, PASSPHRASE, &set([account_key_id(9)]), &HashSet::new());
+    assert_eq!(status_of(&analysis), PreflightStatus::DexConditional);
+}
+
+fn claim_balance_envelope() -> TransactionEnvelope {
+    envelope(
+        1,
+        vec![OperationBody::ClaimClaimableBalance(
+            stellar_xdr::ClaimClaimableBalanceOp {
+                balance_id: stellar_xdr::ClaimableBalanceId::ClaimableBalanceIdTypeV0(
+                    stellar_xdr::Hash([3; 32]),
+                ),
+            },
+        )],
+        TransactionExt::V0,
+    )
+}
+
+#[test]
+fn opaque_identifier_operations_carry_apply_time_risk() {
+    let analysis = analyze(
+        &claim_balance_envelope(),
+        PASSPHRASE,
+        &set([account_key_id(9)]),
+        &HashSet::new(),
+    );
+    assert_eq!(status_of(&analysis), PreflightStatus::ApplyTimeRisk);
+    assert_eq!(
+        PreflightResult::derive_confidence(&analysis.findings),
+        PreflightConfidence::Conditional
+    );
+    let none = analyze(
+        &claim_balance_envelope(),
+        PASSPHRASE,
+        &HashSet::new(),
+        &HashSet::new(),
+    );
+    assert_eq!(status_of(&none), PreflightStatus::Clear);
+}
+
+#[test]
+fn bypass_does_not_cover_apply_time_behavior() {
+    let env = claim_balance_envelope();
+    let hash = content_hash(&env, PASSPHRASE);
+    let frozen = set([account_key_id(1)]);
+    let analysis = analyze(&env, PASSPHRASE, &frozen, &set([hash]));
+    assert!(analysis.bypassed);
+    assert!(
+        analysis
+            .findings
+            .iter()
+            .any(|f| f.status == PreflightStatus::BlockedValidation)
+    );
     assert_eq!(status_of(&analysis), PreflightStatus::ApplyTimeRisk);
 }
 
 #[test]
-fn blocked_outranks_apply_time_risk() {
+fn bypass_for_a_transaction_that_touches_nothing_frozen_is_clear() {
+    let env = envelope(1, vec![payment(2, Asset::Native)], TransactionExt::V0);
+    let hash = content_hash(&env, PASSPHRASE);
+    let analysis = analyze(&env, PASSPHRASE, &set([account_key_id(9)]), &set([hash]));
+    assert!(analysis.bypassed);
+    assert_eq!(status_of(&analysis), PreflightStatus::Clear);
+}
+
+#[test]
+fn credit_payment_to_a_frozen_account_is_not_blocked_without_its_trustline() {
+    let env = envelope(1, vec![payment(2, usd(7))], TransactionExt::V0);
+    let analysis = analyze(&env, PASSPHRASE, &set([account_key_id(2)]), &HashSet::new());
+    assert_eq!(status_of(&analysis), PreflightStatus::Clear);
+}
+
+#[test]
+fn fee_bump_outer_hash_and_both_sources_are_checked() {
+    let inner = match envelope(1, vec![payment(2, Asset::Native)], TransactionExt::V0) {
+        TransactionEnvelope::Tx(v1) => v1,
+        _ => unreachable!(),
+    };
+    let bump = TransactionEnvelope::TxFeeBump(stellar_xdr::FeeBumpTransactionEnvelope {
+        tx: stellar_xdr::FeeBumpTransaction {
+            fee_source: muxed(6),
+            fee: 200,
+            inner_tx: stellar_xdr::FeeBumpTransactionInnerTx::Tx(inner.clone()),
+            ext: stellar_xdr::FeeBumpTransactionExt::V0,
+        },
+        signatures: VecM::default(),
+    });
+    let blocked = analyze(
+        &bump,
+        PASSPHRASE,
+        &set([account_key_id(6)]),
+        &HashSet::new(),
+    );
+    assert_eq!(blocked.findings[0].protocol_path, "fee source account");
+    let inner_hash = content_hash(&TransactionEnvelope::Tx(inner), PASSPHRASE);
+    let wrapped = analyze(
+        &bump,
+        PASSPHRASE,
+        &set([account_key_id(6)]),
+        &set([inner_hash]),
+    );
+    assert!(
+        !wrapped.bypassed,
+        "an inner hash must not bypass a fee bump"
+    );
+}
+
+#[test]
+fn blocked_outranks_dex_conditional() {
     let op = OperationBody::PathPaymentStrictReceive(PathPaymentStrictReceiveOp {
         send_asset: Asset::Native,
         send_max: 10,

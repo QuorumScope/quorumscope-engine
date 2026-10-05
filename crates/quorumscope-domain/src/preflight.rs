@@ -71,26 +71,28 @@ pub struct PreflightResult {
 }
 
 impl PreflightResult {
-    /// Deterministically derive the top-level status from a set of findings.
-    /// The lowest enum value (which corresponds to the highest priority based on Ord derived)
-    /// might be used, but blocked_validation should take precedence over clear.
-    /// Let's define the precedence explicitly.
+    /// Derive the top-level status from findings.
+    ///
+    /// CAP-77 applies a bypass at validation time only. A bypass therefore replaces
+    /// `blocked_validation` findings, but findings about apply-time behavior and
+    /// unsupported analysis still decide the status. A bypass listed for a transaction
+    /// that touches no frozen key changes nothing.
     pub fn derive_status(findings: &[PreflightFinding], is_bypassed: bool) -> PreflightStatus {
-        if is_bypassed {
-            return PreflightStatus::AllowedByBypass;
-        }
-
-        if findings.is_empty() {
-            return PreflightStatus::Clear;
-        }
-
-        // Higher precedence -> wins
-        // BlockedValidation > ApplyTimeRisk > DexConditional > UnsupportedAnalysis > InvalidInput > StateUnavailable > Clear
+        let had_blocked = findings
+            .iter()
+            .any(|f| f.status == PreflightStatus::BlockedValidation);
+        let bypass_applies = is_bypassed && had_blocked;
         let mut highest = PreflightStatus::Clear;
         for finding in findings {
+            if bypass_applies && finding.status == PreflightStatus::BlockedValidation {
+                continue;
+            }
             if finding.status > highest {
                 highest = finding.status;
             }
+        }
+        if bypass_applies && highest == PreflightStatus::Clear {
+            return PreflightStatus::AllowedByBypass;
         }
         highest
     }
@@ -133,7 +135,8 @@ mod tests {
     fn test_derive_status() {
         assert_eq!(
             PreflightResult::derive_status(&[], true),
-            PreflightStatus::AllowedByBypass
+            PreflightStatus::Clear,
+            "a bypass for a transaction that touches no frozen key changes nothing"
         );
         assert_eq!(
             PreflightResult::derive_status(&[], false),
