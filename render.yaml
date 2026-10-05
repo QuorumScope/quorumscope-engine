@@ -14,7 +14,7 @@ services:
     runtime: docker
     plan: free
     healthCheckPath: /health/ready
-    dockerCommand: sh -c "quorumscope index watch & exec quorumscope serve"
+    dockerCommand: /usr/local/bin/render-start.sh
     envVars:
       # PostgreSQL connection URL, supplied at deploy time because it holds a password.
       # Use a host reachable over IPv4. Render's free web services have no IPv6.

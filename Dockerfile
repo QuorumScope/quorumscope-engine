@@ -12,5 +12,6 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --system --uid 10001 quorumscope
 COPY --from=build /src/target/release/quorumscope /usr/local/bin/quorumscope
+COPY scripts/render-start.sh /usr/local/bin/render-start.sh
 USER quorumscope
 CMD ["quorumscope", "serve"]
