@@ -1,4 +1,4 @@
-# Render blueprint for a free staging deployment: PostgreSQL and one web service.
+# Render blueprint for a free staging deployment: one web service. PostgreSQL is external.
 #
 # The web service runs the indexer in watch mode in the background and the API in the foreground.
 # The API applies migrations when it starts, and the indexer polls as soon as it starts, so the
@@ -6,14 +6,8 @@
 #
 # Limits of the free plan: the web service sleeps after 15 minutes without requests. The indexer
 # stops while it sleeps, and the API reports freshness as stale until the service wakes and
-# polls again. The free database expires after 30 days. For a standing deployment, run the
-# indexer as a separate background worker on a paid plan.
-databases:
-  - name: quorumscope-db
-    plan: free
-    databaseName: quorumscope
-    user: quorumscope
-
+# polls again. For a standing deployment, run the indexer as a separate background worker on a
+# paid plan.
 services:
   - type: web
     name: quorumscope-engine-api
@@ -22,10 +16,10 @@ services:
     healthCheckPath: /health/ready
     dockerCommand: sh -c "quorumscope index watch & exec quorumscope serve"
     envVars:
+      # PostgreSQL connection URL, supplied at deploy time because it holds a password.
+      # Use a host reachable over IPv4. Render's free web services have no IPv6.
       - key: DATABASE_URL
-        fromDatabase:
-          name: quorumscope-db
-          property: connectionString
+        sync: false
       - key: API_BIND
         value: 0.0.0.0:10000
       - key: NETWORK_NAME
