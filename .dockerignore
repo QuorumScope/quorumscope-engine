@@ -1,0 +1,6 @@
+target
+.git
+bin
+.github
+*.pdf
+.env

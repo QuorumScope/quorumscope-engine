@@ -1,0 +1,57 @@
+# Render blueprint for a staging deployment: PostgreSQL, the API, and the indexer.
+# The API applies migrations when it starts. The indexer polls immediately on start, so the
+# first poll is the one-shot index.
+databases:
+  - name: quorumscope-db
+    plan: free
+    databaseName: quorumscope
+    user: quorumscope
+
+services:
+  - type: web
+    name: quorumscope-engine-api
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health/ready
+    dockerCommand: quorumscope serve
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: quorumscope-db
+          property: connectionString
+      - key: API_BIND
+        value: 0.0.0.0:10000
+      - key: NETWORK_NAME
+        value: testnet
+      - key: NETWORK_PASSPHRASE
+        value: Test SDF Network ; September 2015
+      - key: STELLAR_RPC_URL
+        value: https://soroban-testnet.stellar.org
+      - key: VERIFIED_PROTOCOL_MAX
+        value: "28"
+      - key: LOG_LEVEL
+        value: info
+      # The exact console origin, for example https://quorumscope-console-staging.vercel.app
+      - key: ALLOWED_ORIGINS
+        sync: false
+
+  - type: worker
+    name: quorumscope-indexer
+    runtime: docker
+    plan: starter
+    dockerCommand: quorumscope index watch
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: quorumscope-db
+          property: connectionString
+      - key: NETWORK_NAME
+        value: testnet
+      - key: NETWORK_PASSPHRASE
+        value: Test SDF Network ; September 2015
+      - key: STELLAR_RPC_URL
+        value: https://soroban-testnet.stellar.org
+      - key: POLLING_INTERVAL_SEC
+        value: "5"
+      - key: LOG_LEVEL
+        value: info
