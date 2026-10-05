@@ -4,7 +4,7 @@ Each item below says how it was checked. "Live" means a real Stellar RPC node an
 
 ## Protocol version
 
-`VERIFIED_PROTOCOL_MAX` defaults to 28. It means the engine was checked against the Protocol 28 XDR and tooling line and current live Soroban Testnet RPC responses. It does not mean every CAP-77 edge case is proven on a live network. The CAP-77 assumptions in [preflight.md](preflight.md) still need review against protocol source material. A network reporting a higher protocol, such as the 29 testnet reported on 2026-10-04, is shown as `unverified_protocol`.
+`VERIFIED_PROTOCOL_MAX` defaults to 28. It means the engine was checked against the Protocol 28 XDR and tooling line and current live Soroban Testnet RPC responses. It does not mean every CAP-77 edge case is proven on a live network. The CAP-77 rules were reviewed against the specification text on 2026-10-05, with open points listed in [preflight.md](preflight.md). A network reporting a higher protocol, such as the 29 testnet reported on 2026-10-04, is shown as `unverified_protocol`.
 
 ## Live verified
 
@@ -31,19 +31,19 @@ Run in CI and locally with `API_TEST_DATABASE_URL`:
 
 ## Fixture verified
 
-- Preflight analysis (14 unit tests) on synthetic transaction envelopes: account, trustline, destination, source, Soroban footprint, bypass hash, DEX, path payment, unsupported operations.
+- Preflight analysis (19 unit tests) on synthetic transaction envelopes: account, trustline, destination, source, Soroban footprint, bypass hash, DEX, path payment, unsupported operations.
 - Freeze and bypass change computation.
 - Report rendering through Typst 0.11.0 to a non-empty PDF, and `quorumscope report` on a synthetic episode row. No real episode has been reported because testnet had none.
 - A `getLatestLedger` response parse.
 
 ## Mocked
 
-- The indexer integration test in `crates/quorumscope-indexer/tests` uses a mocked RPC server. It is a local file that is not committed.
+- `crates/quorumscope-indexer/tests/sync_mocked.rs` simulates the RPC server with wiremock and uses real PostgreSQL. It feeds the indexer a non-empty freeze set and bypass list with synthetic keys, then an empty set. It checks stored keys, bypasses, the opened and resolved episode, evidence references, no duplicate history on a repeated poll, and reconciliation. This is the only coverage of the indexer decoding a non-empty set, so it shows the code path works, not that a live network encodes it the same way.
 
 ## Not verified
 
-- Behavior when the live network has frozen keys or bypasses. The protocol-level meaning of the preflight rules is documented in [preflight.md](preflight.md) as assumptions to check against CAP-77.
-- Whether `FreezeBypassTxs` entries match the hash of a fee bump transaction or of its inner transaction.
+- Behavior when the live network has frozen keys or bypasses. The preflight rules were reviewed against the CAP-77 text on 2026-10-05, not against a running network. Open points are listed in [preflight.md](preflight.md).
+- Whether the bypass content hash includes the network ID the way this engine computes it. Fee bump handling is confirmed by the CAP text, but not on a live network.
 - The `recently_observed`, `dependency_observed`, and `inferred` impact classes. They need transaction history, which is not indexed.
 - Ledger close times. They are not stored.
 - A container image. There is no Dockerfile.
