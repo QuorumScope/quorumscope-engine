@@ -24,6 +24,7 @@ struct Cli {
     #[arg(
         long,
         env = "DATABASE_URL",
+        hide_env_values = true,
         default_value = "postgres://localhost/quorumscope"
     )]
     db_url: String,
