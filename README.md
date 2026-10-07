@@ -14,7 +14,7 @@ QuorumScope engine for Stellar Quorum Freeze indexing, preflight analysis, impac
 [![Testnet Connected](https://img.shields.io/badge/Testnet-Connected-success.svg)](https://quorumscope-engine-api.onrender.com/api/v1/network)
 [![Branch Protected](https://img.shields.io/badge/Branch_Protection-Active-success.svg)](https://github.com/QuorumScope/quorumscope-engine/tree/main)
 
-[Documentation](https://quorumscope.github.io/quorumscope-engine/) · [Staging API](https://quorumscope-engine-api.onrender.com) · [OpenAPI JSON](https://quorumscope-engine-api.onrender.com/openapi.json) · [Latest Release](../../releases/latest) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
+[Documentation](https://quorumscope.github.io/quorumscope-engine/) · [Staging API](https://quorumscope-engine-api.onrender.com) · [OpenAPI JSON](https://quorumscope-engine-api.onrender.com/openapi.json) · [Latest Release](https://github.com/QuorumScope/quorumscope-engine/releases/latest) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -246,3 +246,5 @@ Key standards:
 - Storage and indexing of ledger close timestamps.
 - Documentation site enhancements and automated API explorer integration.
 - Release hardening and packaging.
+
+For detailed release history and milestone planning, see [CHANGELOG.md](CHANGELOG.md) and [ROADMAP.md](ROADMAP.md).
