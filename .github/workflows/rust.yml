@@ -27,7 +27,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7.0.1
     - name: Install Typst
       run: |
         curl -sL https://github.com/typst/typst/releases/download/v0.11.0/typst-x86_64-unknown-linux-musl.tar.xz | tar -xJ
