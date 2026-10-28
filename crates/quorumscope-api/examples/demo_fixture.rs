@@ -83,7 +83,9 @@ fn main() {
     let blocked = transaction(1, Memo::None);
     let bypassed = transaction(
         2,
-        Memo::Text(stellar_xdr::String32::try_from("bypassed").expect("fixture memo fits")),
+        Memo::Text(
+            stellar_xdr::StringM::<28>::try_from(b"bypassed".to_vec()).expect("fixture memo fits"),
+        ),
     );
     let bypass_hash = content_hash(&bypassed, PASSPHRASE);
     let bypass = entry_xdr(ConfigSettingEntry::FreezeBypassTxs(FreezeBypassTxs {
