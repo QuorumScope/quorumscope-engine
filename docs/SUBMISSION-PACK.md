@@ -110,15 +110,16 @@ does not claim that a non-empty freeze event has occurred on a public network.
 
 ## Live Testnet verification
 
-- Stellar Testnet currently runs Protocol 29, matching QuorumScope's verified maximum of 29.
+- Stellar Testnet Protocol 29 has been verified, matching QuorumScope's verified maximum of 29.
 - The public Testnet freeze set has been empty (0 frozen keys, 0 bypasses) during every observation
-  window to date; no non-empty live incident has been observed.
-- Previous Engine staging verification succeeded on Render before the current free-tier
-  instance-hour allowance was exhausted.
-- The staging Engine was previously deployed and verified on Render. The current free-tier
-  instance-hour allowance has been exhausted, so the service may presently be suspended. This is an
-  infrastructure quota condition, not a substitute for the deterministic verification described
-  above.
+  window; no non-empty public Testnet freeze incident has been observed during the verification
+  windows.
+- The Engine has been deployed and exercised against Stellar Testnet in staging.
+- The deterministic non-empty fixture path exists because public Testnet has not supplied a
+  non-empty freeze state during the verification windows. It provides non-empty verification
+  without representing live Testnet evidence.
+- The public Engine staging service uses Render's free tier and is not an always-on production
+  service.
 
 ## Security
 
@@ -177,8 +178,7 @@ See [Known Limitations](limitations.md) for the complete record.
 - [Engine documentation](https://quorumscope.github.io/quorumscope-engine/)
 - [Console documentation](https://quorumscope.github.io/quorumscope-console/)
 - [Staging Console](https://quorumscope-console.vercel.app)
-- [Staging Engine API](https://quorumscope-engine-api.onrender.com) (currently suspended; see Live
-  Testnet verification above)
+- [Staging Engine API](https://quorumscope-engine-api.onrender.com)
 - [OpenAPI JSON](https://quorumscope-engine-api.onrender.com/openapi.json)
 - [Latest release](https://github.com/QuorumScope/quorumscope-engine/releases/latest)
 - [Deterministic demo](demo.md)
