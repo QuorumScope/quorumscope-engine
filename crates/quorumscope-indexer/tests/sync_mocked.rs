@@ -81,7 +81,7 @@ async fn indexer_records_freeze_bypass_episode_and_unfreeze_from_rpc_responses()
         ))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "jsonrpc": "2.0", "id": 2,
-            "result": { "id": "x", "protocolVersion": 28, "sequence": 120 }
+            "result": { "id": "x", "protocolVersion": 29, "sequence": 120 }
         })))
         .mount(&server)
         .await;

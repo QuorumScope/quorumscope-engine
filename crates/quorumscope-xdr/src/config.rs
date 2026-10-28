@@ -79,5 +79,23 @@ mod tests {
                 config_setting_id: ConfigSettingId::FrozenLedgerKeys
             })
         ));
+        assert!(matches!(
+            frozen_ledger_keys_delta_key(),
+            LedgerKey::ConfigSetting(LedgerKeyConfigSetting {
+                config_setting_id: ConfigSettingId::FrozenLedgerKeysDelta
+            })
+        ));
+        assert!(matches!(
+            freeze_bypass_txs_key(),
+            LedgerKey::ConfigSetting(LedgerKeyConfigSetting {
+                config_setting_id: ConfigSettingId::FreezeBypassTxs
+            })
+        ));
+        assert!(matches!(
+            freeze_bypass_txs_delta_key(),
+            LedgerKey::ConfigSetting(LedgerKeyConfigSetting {
+                config_setting_id: ConfigSettingId::FreezeBypassTxsDelta
+            })
+        ));
     }
 }

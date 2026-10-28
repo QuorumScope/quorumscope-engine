@@ -46,10 +46,10 @@ mod tests {
 
     #[test]
     fn response_reads_protocol_version_and_sequence() {
-        let body = r#"{"jsonrpc":"2.0","id":7,"result":{"id":"abc","protocolVersion":25,"sequence":1234}}"#;
+        let body = r#"{"jsonrpc":"2.0","id":7,"result":{"id":"abc","protocolVersion":29,"sequence":1234}}"#;
         let res: GetLatestLedgerResponse = serde_json::from_str(body).unwrap();
         let result = res.result.unwrap();
-        assert_eq!(result.protocol_version, 25);
+        assert_eq!(result.protocol_version, 29);
         assert_eq!(result.sequence, 1234);
     }
 }
