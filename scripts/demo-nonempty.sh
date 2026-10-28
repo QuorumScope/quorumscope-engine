@@ -9,6 +9,7 @@ STATE_DIR="${QS_DEMO_STATE_DIR:-$(mktemp -d)}"
 API_PORT="${QS_DEMO_API_PORT:-18080}"
 RPC_PORT="${QS_DEMO_RPC_PORT:-18081}"
 DB_PORT="${QS_DEMO_DB_PORT:-55432}"
+DB_READY_TIMEOUT_SECONDS="${QS_DEMO_DB_READY_TIMEOUT_SECONDS:-60}"
 SERVE_ONLY=false
 
 if [[ "${1:-}" == "--serve" ]]; then
@@ -31,14 +32,24 @@ trap cleanup EXIT INT TERM
 
 command -v docker >/dev/null || { echo "docker is required for the deterministic fixture demo" >&2; exit 1; }
 command -v python3 >/dev/null || { echo "python3 is required for the deterministic fixture demo" >&2; exit 1; }
+command -v curl >/dev/null || { echo "curl is required for the deterministic fixture demo" >&2; exit 1; }
 
-docker run --rm -d --name "$CONTAINER" \
+if ! timeout 30s docker run --rm -d --name "$CONTAINER" \
   -e POSTGRES_USER=quorumscope \
   -e POSTGRES_PASSWORD=quorumscope_demo \
   -e POSTGRES_DB=quorumscope \
   -p "127.0.0.1:${DB_PORT}:5432" \
-  postgres:16-alpine >/dev/null
+  postgres:16-alpine >/dev/null; then
+  echo "PostgreSQL container did not start within 30 seconds" >&2
+  exit 1
+fi
+
+READY_DEADLINE=$((SECONDS + DB_READY_TIMEOUT_SECONDS))
 until docker exec "$CONTAINER" pg_isready -U quorumscope -d quorumscope >/dev/null 2>&1; do
+  if (( SECONDS >= READY_DEADLINE )); then
+    echo "PostgreSQL container did not become ready within ${DB_READY_TIMEOUT_SECONDS} seconds" >&2
+    exit 1
+  fi
   sleep 1
 done
 
