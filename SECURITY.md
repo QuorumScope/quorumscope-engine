@@ -54,10 +54,13 @@ The `quorumscope report` command compiles PDF incident summaries using Typst:
 
 - Rust dependencies are tracked in `Cargo.lock`.
 - A current `cargo audit` run is part of the pre-approval review, but it is not clean: the
-  dependency graph currently reports one vulnerability in a transitive `rsa` path. Compatible
-  updates to Tokio, `rustls`, `rustls-webpki`, `webpki-root-certs`, and `webpki-roots` removed
-  their reported advisories. RustSec reports no fixed upgrade for the remaining `rsa` finding.
-  This repository does not claim a clean automated audit.
+  dependency graph currently reports one vulnerability in a transitive `rsa` path. The path is
+  `sqlx` → optional `sqlx-mysql` → `rsa`; QuorumScope enables SQLx's PostgreSQL backend and the
+  active workspace build does not compile the MySQL path, but the package remains in the lockfile
+  and is still reported by `cargo audit`. Compatible updates to Tokio, `rustls`, `rustls-webpki`,
+  `webpki-root-certs`, and `webpki-roots` removed their reported advisories. RustSec reports no
+  fixed upgrade for the remaining `rsa` finding. This repository does not claim a clean automated
+  audit.
 - `deny.toml` is intentionally empty; QuorumScope does not claim to run a meaningful `cargo deny`
   policy.
 - Releases target the pinned Rust version specified in `rust-toolchain.toml`.
