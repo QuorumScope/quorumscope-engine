@@ -12,6 +12,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Continuous indexing deployment on dedicated hosting infrastructure.
 - Ingestion of transaction history to populate `recently_observed` and `dependency_observed` impact classes.
 
+## [v0.1.1-staging] - 2026-10-28
+
+### Added
+- Deterministic non-empty reviewer demo covering fixture RPC, real PostgreSQL persistence, Engine API, and preflight results.
+- Dependabot maintenance configuration for Cargo and GitHub Actions.
+
+### Changed
+- Verified the CAP-77 compatibility surface through Stellar Protocol 29 and updated the compatibility, OpenAPI, security, and differentiation documentation.
+- Added explicit Protocol 30 readiness boundaries without claiming Protocol 30 support.
+
+### Known limitations
+- Stellar Testnet still has no live non-empty freeze state observed by QuorumScope.
+- Protocol 30 is upcoming and not active.
+- The Render free-tier staging service may sleep and was suspended at the time of this review; it has no production SLA.
+- No formal third-party security audit has been completed.
+
 ## [v0.1.0-staging] - 2026-10-07
 
 ### Added
