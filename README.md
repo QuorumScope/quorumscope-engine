@@ -14,7 +14,7 @@ QuorumScope engine for Stellar Quorum Freeze indexing, preflight analysis, impac
 [![Testnet Protocol](https://img.shields.io/badge/Testnet-Protocol_29-blue.svg)](docs/versions.md)
 [![Branch Protected](https://img.shields.io/badge/Branch_Protection-Active-success.svg)](https://github.com/QuorumScope/quorumscope-engine/tree/main)
 
-[Documentation](https://quorumscope.github.io/quorumscope-engine/) · [Staging API](https://quorumscope-engine-api.onrender.com) · [OpenAPI JSON](https://quorumscope-engine-api.onrender.com/openapi.json) · [Latest Release](https://github.com/QuorumScope/quorumscope-engine/releases/latest) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
+[Documentation](https://quorumscope.github.io/quorumscope-engine/) · [Staging API](https://quorumscope-engine-api.onrender.com) · [OpenAPI JSON](https://quorumscope-engine-api.onrender.com/openapi.json) · [Latest Release](https://github.com/QuorumScope/quorumscope-engine/releases/latest) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Submission pack](docs/SUBMISSION-PACK.md)
 
 </div>
 
