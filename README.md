@@ -9,8 +9,8 @@ QuorumScope engine for Stellar Quorum Freeze indexing, preflight analysis, impac
 [![Rust CI](https://github.com/QuorumScope/quorumscope-engine/actions/workflows/rust.yml/badge.svg)](https://github.com/QuorumScope/quorumscope-engine/actions/workflows/rust.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Staging API](https://img.shields.io/badge/Staging_API-Online-brightgreen.svg)](https://quorumscope-engine-api.onrender.com)
-[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.3-orange.svg)](https://quorumscope-engine-api.onrender.com/openapi.json)
-[![Protocol Max](https://img.shields.io/badge/Protocol_Verified_Max-28-blue.svg)](docs/versions.md)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1.0-orange.svg)](https://quorumscope-engine-api.onrender.com/openapi.json)
+[![Protocol Max](https://img.shields.io/badge/Protocol_Verified_Max-29-blue.svg)](docs/versions.md)
 [![Testnet Connected](https://img.shields.io/badge/Testnet-Connected-success.svg)](https://quorumscope-engine-api.onrender.com/api/v1/network)
 [![Branch Protected](https://img.shields.io/badge/Branch_Protection-Active-success.svg)](https://github.com/QuorumScope/quorumscope-engine/tree/main)
 
@@ -26,7 +26,7 @@ QuorumScope Engine is the backend protocol-processing layer for Stellar Quorum F
 
 The engine also provides preflight simulation to test whether candidate transactions touch frozen keys before submission, calculates blast radius impact data, and compiles freeze episodes into PDF incident reports.
 
-## Why it exists
+## Why QuorumScope exists
 
 CAP-77 introduces protocol-level freeze mechanisms to Stellar. When an account, trustline, or smart contract storage key is frozen by quorum action, transactions touching those ledger entries fail validation unless explicitly included in a freeze bypass list.
 
@@ -37,6 +37,12 @@ Developers and operators need visibility into:
 - What accounts and contracts are affected by an active freeze episode.
 
 QuorumScope Engine turns low-level RPC state into queryable API endpoints, deterministic preflight checks, and verifiable incident records.
+
+## What QuorumScope is not
+
+The Engine is not a general Stellar explorer, wallet, transaction sender, validator, replacement for
+Stellar Core, or generic monitoring dashboard. It is the protocol-aware indexing and analysis layer
+for CAP-77 state.
 
 ## Current staging status
 
@@ -49,9 +55,9 @@ QuorumScope Engine turns low-level RPC state into queryable API endpoints, deter
 
 Staging notes:
 - The staging API runs on Render free tier infrastructure. It spins down during inactivity, so cold starts can take up to 60 seconds. A waking instance may temporarily report stale freshness until the next poll cycle completes.
-- The engine enforces `VERIFIED_PROTOCOL_MAX=28`. Stellar Testnet currently reports Protocol 29, so the API reports `unverified_protocol` compatibility. This is expected behavior.
+- The engine enforces `VERIFIED_PROTOCOL_MAX=29`. Stellar Mainnet and Testnet currently report Protocol 29, and this release verifies that protocol line for the CAP-77 workflow.
 - Stellar Testnet currently contains an empty freeze set (0 frozen keys and 0 bypasses).
-- Non-empty freeze set handling and unfreeze transitions are verified using integration tests, wiremock RPC tests, and fixtures rather than live testnet data.
+- Non-empty freeze set handling and unfreeze transitions are verified using integration tests, wiremock RPC tests, and the [deterministic fixture demo](docs/demo.md), not as live Testnet events.
 
 ## Features
 
@@ -62,7 +68,7 @@ Staging notes:
 - **Preflight Analysis**: Analyzes base64 transaction envelopes against active freeze sets across accounts, trustlines, claimable balances, and Soroban contract storage.
 - **Impact API**: Classifies affected resources into direct and protocol-derived evidence categories.
 - **Freshness and Compatibility Tracking**: Reports source ledger sequence, lag behind network tip, observation age, and protocol verification status.
-- **OpenAPI 3.0 Specification**: Exposes route specifications at `/openapi.json`.
+- **OpenAPI 3.1.0 Specification**: Exposes route specifications at `/openapi.json`.
 - **Command-Line Interface**: Provides `init`, `serve`, `index once`, `index watch`, and `report` subcommands.
 - **Incident PDF Reports**: Generates formal incident summaries using Typst.
 - **Security Controls**: Implements request ID tracking (`x-request-id`), sanitized error responses, configurable CORS, and strict body limits.
@@ -114,7 +120,7 @@ All endpoints return JSON and include an `x-request-id` header.
 | `GET` | `/api/v1/incidents/{id}/timeline` | Sequential evidence timeline for a freeze episode |
 | `POST` | `/api/v1/preflight` | Evaluates a candidate transaction against the current freeze state |
 | `GET` | `/api/v1/impact` | Paginated impact records filtered by evidence class and key kind |
-| `GET` | `/openapi.json` | OpenAPI 3.0 specification |
+| `GET` | `/openapi.json` | OpenAPI 3.1.0 specification |
 | `GET` | `/metrics` | Prometheus operational metrics |
 
 ## Quick start
@@ -188,7 +194,7 @@ curl http://127.0.0.1:8080/api/v1/network
 | `NETWORK_NAME` | `--network-name` | `testnet` | Network identifier in storage |
 | `NETWORK_PASSPHRASE` | `--network-passphrase` | `Test SDF Network ; September 2015` | Stellar network passphrase |
 | `API_BIND` | `--bind` | `127.0.0.1:8080` | Bind address and port for HTTP server |
-| `VERIFIED_PROTOCOL_MAX` | `--verified-protocol-max` | `28` | Highest protocol version verified by this release |
+| `VERIFIED_PROTOCOL_MAX` | `--verified-protocol-max` | `29` | Highest protocol version verified by this release |
 | `STALE_AFTER_SEC` | `--stale-after-sec` | `300` | Seconds before inactivity reports state as stale |
 | `MAX_LAG_LEDGERS` | `--max-lag-ledgers` | `10` | Allowable ledger lag before marking state behind |
 | `ALLOWED_ORIGINS` | `--allowed-origins` | None | Comma-separated allowed CORS origins |
@@ -205,12 +211,14 @@ The test suite enforces verification boundaries across testing categories:
 | **Integration Verified** | Real PostgreSQL database, synthetic data | Full episode lifecycles (open/close), preflight status codes, impact records and filters, error envelopes with request IDs, CORS enforcement. |
 | **Fixture Verified** | Offline fixtures | 19 preflight operation scenarios, freeze and bypass state-machine transitions, Typst PDF generation from synthetic episodes. |
 | **Mocked** | Wiremock RPC server, real PostgreSQL | Decoding non-empty freeze sets and bypass lists, episode generation, evidence recording without live network dependency. |
-| **Unverified** | Protocol 29 and live non-empty state | Live network behavior with an active non-empty freeze set has not occurred on testnet. Protocol 29 compatibility is unverified. |
+| **Fixture verified** | Deterministic non-empty state | The real Engine, PostgreSQL, API, and preflight path are exercised against a controlled RPC fixture. The fixture is not live network evidence. |
+| **Live limitation** | Non-empty Testnet state | Live Testnet behavior with an active non-empty freeze set has not occurred in the observed window. |
 
 ## Limitations
 
 - **No Live Non-Empty Freeze Set**: Stellar Testnet currently contains 0 frozen keys. Live RPC decoding of non-empty freeze sets has only been verified using mocked RPC responses and local fixtures.
-- **Protocol 29 Status**: Stellar Testnet operates on Protocol 29. Because the engine is verified up to Protocol 28 (`VERIFIED_PROTOCOL_MAX=28`), the system reports `unverified_protocol`.
+- **Protocol 29 Status**: Stellar Mainnet and Testnet operate on Protocol 29. The official Stellar software-version page lists XDR v28 and Rust `stellar-xdr` 28.0.1 for that protocol, and states that Protocol 29 introduces no new CAPs. QuorumScope verifies its existing CAP-77 workflow against that compatibility surface, so the live protocol status is `verified` when freshness is current.
+- **Protocol 30 Status**: Bell releases are available, but Protocol 30 is scheduled for future Testnet and Mainnet votes and is not active. QuorumScope does not claim Protocol 30 support.
 - **Infrastructure Hibernation**: The staging API on Render free tier sleeps during inactivity, resulting in cold starts up to 60 seconds and temporary stale freshness status until refreshed.
 - **Uncollected Impact Classes**: Impact classes requiring transaction history (`recently_observed`, `dependency_observed`, `inferred`) are not collected because transaction history indexing is not implemented.
 - **Ledger Close Times**: Ledger close timestamps are not indexed or stored in the database.
@@ -239,7 +247,9 @@ Key standards:
 
 ## Roadmap
 
-- Protocol 29 verification and compatibility testing.
+- Protocol 30 readiness after network activation, including CAP-84 and CAP-88 XDR review.
+- Transaction-history-backed impact evidence.
+- Ledger close-time persistence, distinct from Protocol 30 millisecond close-time compatibility.
 - Live non-empty freeze set verification when protocol events occur on public networks.
 - Always-on indexer deployment on dedicated paid hosting.
 - Transaction history indexing to support `recently_observed` and `dependency_observed` impact classes.

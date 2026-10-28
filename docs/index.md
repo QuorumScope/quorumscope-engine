@@ -16,6 +16,8 @@ QuorumScope Engine is the backend protocol processing and indexing layer for Ste
 - [Known Limitations](limitations.md): Current protocol, storage, and infrastructure boundaries.
 - [Protocol Versions](versions.md): Tracking verified protocol versions and upgrade paths.
 - [Release Notes](release-notes.md): Notes for `v0.1.0-staging`.
+- [Deterministic Demo](demo.md): Reproducible non-empty fixture walkthrough.
+- [Differentiation](differentiation.md): Scope and adjacent-project comparison.
 
 ## Staging Endpoints
 

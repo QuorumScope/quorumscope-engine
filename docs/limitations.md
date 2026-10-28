@@ -9,10 +9,15 @@ Stellar Testnet currently operates with an empty freeze set (0 frozen keys and 0
 - Ingestion of non-empty freeze sets has only been verified against wiremock RPC simulations and constructed test fixtures.
 - Live RPC interaction with real network freeze events will be verified when such events occur on public Stellar networks.
 
-### 2. Protocol 29 Compatibility
-- The engine's highest verified protocol version is Protocol 28 (`VERIFIED_PROTOCOL_MAX=28`).
-- Stellar Testnet currently reports Protocol 29.
-- Because Protocol 29 has not yet undergone formal end-to-end verification in this codebase, the engine surfaces an `unverified_protocol` compatibility warning on status endpoints.
+### 2. Live non-empty state
+- The engine verifies the current Protocol 29 CAP-77 compatibility surface, but Stellar Testnet has
+  not supplied a live non-empty freeze set in the observed checks.
+- The deterministic fixture demo covers non-empty decoding, persistence, API presentation, and
+  preflight without presenting synthetic data as live evidence.
+
+### 3. Protocol 30 readiness
+- Protocol 30 is upcoming, not active. CAP-84 and CAP-88 require a future XDR and activated-network
+  verification pass.
 
 ## Ingestion & Storage Boundaries
 

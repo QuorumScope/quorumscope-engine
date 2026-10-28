@@ -39,7 +39,7 @@ QuorumScope Engine is composed of modular components designed for high-fidelity 
                       |   Axum API Server           |
                       |   - REST Read Endpoints     |
                       |   - Preflight Engine        |
-                      |   - OpenAPI 3.0 Specs       |
+                      |   - OpenAPI 3.1.0 Specs     |
                       +--------------+--------------+
                                      |
                                      | HTTPS / JSON
@@ -89,5 +89,5 @@ QuorumScope Engine is composed of modular components designed for high-fidelity 
 ### 5. API Server (`quorumscope-api`)
 - Built with Axum, Tokio, and Tower.
 - Exposes read endpoints for networks, status, freeze states, keys, episodes, bypasses, and impact.
-- Generates OpenAPI 3.0 schema directly from code annotations via utoipa.
+- Generates the OpenAPI 3.1.0 schema directly from code annotations via utoipa.
 - Implements security middleware: unique request IDs (`x-request-id`), sanitized error responses, Prometheus metrics, and CORS validation.

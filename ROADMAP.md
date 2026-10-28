@@ -7,16 +7,16 @@ This roadmap documents planned improvements and engineering milestones for Quoru
 - [x] Functional CAP-77 indexing pipeline for `FrozenLedgerKeys` and `FreezeBypassTxs`.
 - [x] In-memory preflight simulation covering core Stellar operations and Soroban footprints.
 - [x] PostgreSQL persistence with schema migrations.
-- [x] OpenAPI 3.0 specification publication.
+- [x] OpenAPI 3.1.0 specification publication.
 - [x] Staging deployment on Render backed by Supabase PostgreSQL.
 - [x] Wiremock RPC tests and fixture suites covering non-empty freeze sets.
 
 ## Near-term milestones
 
-### 1. Protocol 29 verification
-- Track Stellar core Protocol 29 stabilization and tooling releases.
-- Verify XDR changes and RPC response schemas under Protocol 29.
-- Advance `VERIFIED_PROTOCOL_MAX` to 29 once specification compatibility is verified.
+### 1. Protocol 30 readiness
+- Review CAP-84 muxed-contract address variants and CAP-88 millisecond close-time XDR.
+- Verify against the activated network and Protocol 30 toolchain after the scheduled votes.
+- Do not treat release availability as active-network support.
 
 ### 2. Live non-empty freeze set verification
 - Monitor Stellar Testnet for protocol freeze events.
@@ -35,9 +35,10 @@ This roadmap documents planned improvements and engineering milestones for Quoru
 - Populate `recently_observed`, `dependency_observed`, and `inferred` impact classes.
 - Provide dependency graphs between smart contracts and frozen data keys.
 
-### 5. Ledger close time support
+### 5. Ledger close time persistence
 - Persist ledger close timestamps alongside ledger sequence checkpoints.
 - Support precise time-range queries for freeze episodes and unfreeze durations.
+- This storage gap is separate from Protocol 30's upcoming millisecond-resolution XDR change.
 
 ### 6. Documentation and release hardening
 - Publish automated OpenAPI client generation workflows.

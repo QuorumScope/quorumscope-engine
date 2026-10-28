@@ -4,7 +4,11 @@ Each item below says how it was checked. "Live" means a real Stellar RPC node an
 
 ## Protocol version
 
-`VERIFIED_PROTOCOL_MAX` defaults to 28. It means the engine was checked against the Protocol 28 XDR and tooling line and current live Soroban Testnet RPC responses. It does not mean every CAP-77 edge case is proven on a live network. The CAP-77 rules were reviewed against the specification text on 2026-10-05, with open points listed in [preflight.md](preflight.md). A network reporting a higher protocol, such as the 29 testnet reported on 2026-10-04, is shown as `unverified_protocol`.
+`VERIFIED_PROTOCOL_MAX` defaults to 29. Stellar's official Protocol 29 table lists XDR v28 and
+Rust `stellar-xdr` 28.0.1, and states that Protocol 29 introduces no new CAPs. The Engine's CAP-77
+workflow was reviewed against the final CAP-77 specification and checked with current Testnet RPC
+response shapes. This does not mean every CAP-77 edge case is proven by a live non-empty network
+event.
 
 ## Live verified
 
@@ -42,7 +46,9 @@ Run in CI and locally with `API_TEST_DATABASE_URL`:
 
 ## Not verified
 
-- Behavior when the live network has frozen keys or bypasses. The preflight rules were reviewed against the CAP-77 text on 2026-10-05, not against a running network. Open points are listed in [preflight.md](preflight.md).
+- Behavior when the live network has frozen keys or bypasses. The deterministic fixture demo and
+  mocked-RPC/PostgreSQL tests cover the non-empty path; Testnet has not provided a live non-empty
+  event. Open points are listed in [preflight.md](preflight.md).
 - Whether the bypass content hash includes the network ID the way this engine computes it. Fee bump handling is confirmed by the CAP text, but not on a live network.
 - The `recently_observed`, `dependency_observed`, and `inferred` impact classes. They need transaction history, which is not indexed.
 - Ledger close times. They are not stored.

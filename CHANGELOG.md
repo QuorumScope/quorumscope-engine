@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Verification of Protocol 29 compatibility once testnet stabilization occurs.
+- Protocol 30 readiness after Bell activation, including CAP-84 and CAP-88 review.
 - Continuous indexing deployment on dedicated hosting infrastructure.
 - Ingestion of transaction history to populate `recently_observed` and `dependency_observed` impact classes.
 
@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PostgreSQL storage schema with migrations covering networks, checkpoints, ledger keys, freeze state changes, bypasses, episodes, impact, and evidence.
 - Full Axum HTTP API serving `/health/live`, `/health/ready`, `/api/v1/network`, `/api/v1/status`, `/api/v1/freeze-state`, `/api/v1/frozen-keys`, `/api/v1/bypasses`, `/api/v1/incidents`, `/api/v1/impact`, and `/api/v1/preflight`.
 - Interactive preflight simulation analyzing transaction envelope XDR across account, trustline, claimable balance, liquidity pool, and Soroban contract keys.
-- OpenAPI 3.0 specification endpoint at `GET /openapi.json`.
+- OpenAPI 3.1.0 specification endpoint at `GET /openapi.json`.
 - Command-line interface with subcommands: `init`, `serve`, `index once`, `index watch`, and `report`.
 - Incident report generation producing PDF files via Typst.
 - Automatic request ID generation (`x-request-id`) and sanitized client error envelopes.
@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Staging OpenAPI definition: [OpenAPI JSON](https://quorumscope-engine-api.onrender.com/openapi.json).
 
 ### Changed
-- Standardized `VERIFIED_PROTOCOL_MAX` default to 28 across CLI flags and environment variables.
+- Standardized `VERIFIED_PROTOCOL_MAX` default to 29 across CLI flags and environment variables.
 - Refined freeze episode reconciliation to handle out-of-order polls and database recovery.
 
 ### Fixed
@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Known limitations
 - **No live non-empty freeze set observed**: Stellar Testnet currently contains 0 frozen keys. Non-empty freeze states and bypass resolutions are validated through wiremock RPC tests and fixtures.
-- **Protocol 29 unverified warning**: Stellar Testnet reports Protocol 29, which exceeds `VERIFIED_PROTOCOL_MAX=28`. The API correctly returns `unverified_protocol` status.
+- **Protocol 29 compatibility**: Stellar Mainnet and Testnet report Protocol 29. The CAP-77 workflow is verified through Protocol 29; a future network protocol above the maximum still returns `unverified_protocol`.
 - **Render free tier sleep**: The staging API sleeps after inactivity. Cold starts can take up to 60 seconds, during which data freshness may temporarily read as stale until the next poll cycle.
 - **Uncollected impact classes**: Impact classes requiring transaction history (`recently_observed`, `dependency_observed`, `inferred`) are not collected.
 - **Ledger close times**: Ledger close timestamps are not persisted.

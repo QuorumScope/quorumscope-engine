@@ -31,7 +31,7 @@ services:
       - key: POLLING_INTERVAL_SEC
         value: "5"
       - key: VERIFIED_PROTOCOL_MAX
-        value: "28"
+        value: "29"
       - key: LOG_LEVEL
         value: info
       # The exact console origin, for example https://quorumscope-console-staging.vercel.app

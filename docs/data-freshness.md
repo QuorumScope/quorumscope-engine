@@ -29,7 +29,7 @@ The freshness model indicates whether the engine's view of freeze state can be r
 | Field | Type | Description |
 | --- | --- | --- |
 | `current_protocol_version` | integer | Protocol version reported by the RPC node (`getLatestLedger`) |
-| `verified_protocol_max` | integer | Highest protocol version verified by this release (default: 28) |
+| `verified_protocol_max` | integer | Highest protocol version verified by this release (default: 29) |
 | `compatibility` | string | `verified`, `unverified_protocol`, or `unknown` |
 
 When `current_protocol_version > verified_protocol_max`, compatibility is reported as `unverified_protocol`. Downstream clients should present a compatibility warning indicating that newer protocol features have not been verified.

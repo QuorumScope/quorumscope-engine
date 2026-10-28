@@ -38,7 +38,7 @@ Located in `crates/quorumscope-indexer/tests/sync_mocked.rs`:
 Located in `crates/quorumscope-storage/tests` and `crates/quorumscope-api/tests`:
 - Require a real PostgreSQL instance specified by `API_TEST_DATABASE_URL`.
 - Verify schema migrations, foreign key constraints, and transactional consistency.
-- Validate that all implemented API routes conform to the OpenAPI 3.0 specification.
+- Validate that all implemented API routes conform to the OpenAPI 3.1.0 specification.
 
 ### 4. Report Generation Tests
 Located in `crates/quorumscope-report/src/lib.rs`:

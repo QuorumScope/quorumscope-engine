@@ -69,7 +69,7 @@ enum Commands {
         #[arg(long, env = "API_BIND", default_value = "127.0.0.1:8080")]
         bind: std::net::SocketAddr,
         /// Highest protocol version this release has been checked against.
-        #[arg(long, env = "VERIFIED_PROTOCOL_MAX", default_value = "28")]
+        #[arg(long, env = "VERIFIED_PROTOCOL_MAX", default_value = "29")]
         verified_protocol_max: i32,
         /// Seconds without a network observation before state is reported as stale.
         #[arg(long, env = "STALE_AFTER_SEC", default_value = "300")]
