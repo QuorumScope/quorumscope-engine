@@ -52,7 +52,14 @@ The `quorumscope report` command compiles PDF incident summaries using Typst:
 
 ## Dependency expectations
 
-- Rust dependencies are tracked in `Cargo.lock` and audited regularly using `cargo deny` and `cargo audit`.
+- Rust dependencies are tracked in `Cargo.lock`.
+- A current `cargo audit` run is part of the pre-approval review, but it is not clean: the
+  dependency graph currently includes advisories in transitive `rsa`, `rustls`, `rustls-webpki`,
+  `webpki-root-certs`, `webpki-roots`, and `tokio` paths. Some have fixed releases and some do not
+  currently have an upstream fix. This repository does not claim a clean automated audit until
+  those findings are resolved or explicitly assessed.
+- `deny.toml` is intentionally empty; QuorumScope does not claim to run a meaningful `cargo deny`
+  policy.
 - Releases target the pinned Rust version specified in `rust-toolchain.toml`.
 - Stellar protocol types are decoded using the official `stellar-xdr` crate.
 
