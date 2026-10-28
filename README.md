@@ -8,10 +8,10 @@ QuorumScope engine for Stellar Quorum Freeze indexing, preflight analysis, impac
 
 [![Rust CI](https://github.com/QuorumScope/quorumscope-engine/actions/workflows/rust.yml/badge.svg)](https://github.com/QuorumScope/quorumscope-engine/actions/workflows/rust.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Staging API](https://img.shields.io/badge/Staging_API-Online-brightgreen.svg)](https://quorumscope-engine-api.onrender.com)
+[![Staging API](https://img.shields.io/badge/Staging_API-Suspended-yellow.svg)](https://quorumscope-engine-api.onrender.com)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1.0-orange.svg)](https://quorumscope-engine-api.onrender.com/openapi.json)
 [![Protocol Max](https://img.shields.io/badge/Protocol_Verified_Max-29-blue.svg)](docs/versions.md)
-[![Testnet Connected](https://img.shields.io/badge/Testnet-Connected-success.svg)](https://quorumscope-engine-api.onrender.com/api/v1/network)
+[![Testnet Protocol](https://img.shields.io/badge/Testnet-Protocol_29-blue.svg)](docs/versions.md)
 [![Branch Protected](https://img.shields.io/badge/Branch_Protection-Active-success.svg)](https://github.com/QuorumScope/quorumscope-engine/tree/main)
 
 [Documentation](https://quorumscope.github.io/quorumscope-engine/) · [Staging API](https://quorumscope-engine-api.onrender.com) · [OpenAPI JSON](https://quorumscope-engine-api.onrender.com/openapi.json) · [Latest Release](https://github.com/QuorumScope/quorumscope-engine/releases/latest) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
@@ -48,13 +48,14 @@ for CAP-77 state.
 
 | Service | Host | Status |
 | --- | --- | --- |
-| HTTP API | Render | [Staging API](https://quorumscope-engine-api.onrender.com) |
-| OpenAPI Specification | Render | [OpenAPI JSON](https://quorumscope-engine-api.onrender.com/openapi.json) |
+| HTTP API | Render | [Staging API](https://quorumscope-engine-api.onrender.com) — currently suspended |
+| OpenAPI Specification | Render | [OpenAPI JSON](https://quorumscope-engine-api.onrender.com/openapi.json) — unavailable while suspended |
 | Database | Supabase | Managed PostgreSQL 16 |
 | Target Network | Stellar Testnet | RPC at `https://soroban-testnet.stellar.org` |
 
 Staging notes:
 - The staging API runs on Render free tier infrastructure. It spins down during inactivity, so cold starts can take up to 60 seconds. A waking instance may temporarily report stale freshness until the next poll cycle completes.
+- At the time of this review, the Render service is returning `Service Suspended`; resume the service before relying on the deployed API links. This is a deployment-availability limitation, not evidence of a live non-empty freeze state.
 - The engine enforces `VERIFIED_PROTOCOL_MAX=29`. Stellar Mainnet and Testnet currently report Protocol 29, and this release verifies that protocol line for the CAP-77 workflow.
 - Stellar Testnet currently contains an empty freeze set (0 frozen keys and 0 bypasses).
 - Non-empty freeze set handling and unfreeze transitions are verified using integration tests, wiremock RPC tests, and the [deterministic fixture demo](docs/demo.md), not as live Testnet events.

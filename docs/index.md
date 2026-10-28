@@ -21,7 +21,7 @@ QuorumScope Engine is the backend protocol processing and indexing layer for Ste
 
 ## Staging Endpoints
 
-- Staging API: [https://quorumscope-engine-api.onrender.com](https://quorumscope-engine-api.onrender.com)
+- Staging API: [https://quorumscope-engine-api.onrender.com](https://quorumscope-engine-api.onrender.com) (currently suspended; see the README for the live limitation)
 - OpenAPI Specification: [https://quorumscope-engine-api.onrender.com/openapi.json](https://quorumscope-engine-api.onrender.com/openapi.json)
 - Web Console: [https://quorumscope-console.vercel.app](https://quorumscope-console.vercel.app)
 
